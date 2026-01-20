@@ -1,5 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { Handler } from 'aws-lambda';
+import type { Handler } from 'aws-lambda';
 import * as https from 'https';
 import { URL } from 'url';
 import { IncomingMessage } from 'http';

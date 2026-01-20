@@ -1,6 +1,6 @@
 import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
-import { Handler } from 'aws-lambda';
+import type { Handler } from 'aws-lambda';
 
 const ses = new SESClient({});
 const ssm = new SSMClient({});
