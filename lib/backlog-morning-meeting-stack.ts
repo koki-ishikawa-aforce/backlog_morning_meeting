@@ -29,8 +29,8 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       'backlog-morning-meeting/teams-workflows-url'
     );
 
-    // Parameter Store: 有効な担当者ID（オプション）
-    const activeAssigneeIdsParam = ssm.StringParameter.fromStringParameterName(
+    // Parameter Store: 有効な担当者ID（オプション / StringList）
+    const activeAssigneeIdsParam = ssm.StringListParameter.fromStringListParameterName(
       this,
       'ActiveAssigneeIdsParam',
       '/backlog-morning-meeting/active-assignee-ids'
@@ -50,7 +50,8 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       '/backlog-morning-meeting/email-from'
     );
 
-    const emailRecipientsParam = ssm.StringParameter.fromStringParameterName(
+    // Parameter Store: メール送信先（必須 / StringList）
+    const emailRecipientsParam = ssm.StringListParameter.fromStringListParameterName(
       this,
       'EmailRecipientsParam',
       '/backlog-morning-meeting/email-recipients'
