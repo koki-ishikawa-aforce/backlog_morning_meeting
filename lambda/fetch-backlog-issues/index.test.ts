@@ -251,7 +251,8 @@ describe('fetch-backlog-issues', () => {
       const fixedDateObj = new Date(fixedDate + 'T00:00:00.000Z');
       const jstOffset = 9 * 60 * 60 * 1000;
       const mockTime = fixedDateObj.getTime() - jstOffset;
-      jest.useFakeTimers();
+      // setTimeoutはモックしない（HTTPSモックで使用するため）
+      jest.useFakeTimers({ doNotFake: ['setTimeout'] });
       jest.setSystemTime(mockTime);
     };
 
@@ -1201,9 +1202,9 @@ describe('fetch-backlog-issues', () => {
         expect(issues.length).toBeGreaterThan(0);
       });
 
-      it('開始日が未来30日以内の課題が取得される', async () => {
+      it('開始日が未来30日以内の課題は取得されるが本日対応予定フィルタリングで除外される', async () => {
         const mockRequest = https.request as jest.Mock;
-        const testDate = '2026-02-10';
+        const testDate = '2026-02-10'; // 未来の日付
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
             statusCode: 200,
@@ -1246,15 +1247,16 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
+        // 開始日が未来の課題は本日対応予定のフィルタリングで除外される
         const issues = result.projects[0].issues.filter((issue: any) => {
           return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] === testDate;
         });
-        expect(issues.length).toBeGreaterThan(0);
+        expect(issues.length).toBe(0);
       });
 
-      it('期限日が過去30日以内の課題が取得される', async () => {
+      it('期限日が過去30日以内の課題は取得されるが本日対応予定フィルタリングで除外される', async () => {
         const mockRequest = https.request as jest.Mock;
-        const testDate = '2026-01-10';
+        const testDate = '2026-01-10'; // 過去の日付
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
             statusCode: 200,
@@ -1298,10 +1300,11 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
+        // 期限日が過去の課題は本日対応予定のフィルタリングで除外される（期限日のみ設定時は dueDate >= today）
         const issues = result.projects[0].issues.filter((issue: any) => {
           return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === testDate;
         });
-        expect(issues.length).toBeGreaterThan(0);
+        expect(issues.length).toBe(0);
       });
 
       it('期限日が未来30日以内の課題が取得される', async () => {
