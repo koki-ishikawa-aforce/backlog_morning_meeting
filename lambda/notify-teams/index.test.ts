@@ -30,10 +30,10 @@ describe('notify-teams', () => {
       process.env.TEAMS_WORKFLOWS_URL = 'https://example.com/workflows/trigger';
 
       const mockRequest = https.request as jest.Mock;
-      mockRequest.mockImplementation((options, callback) => {
-        const mockResponse = {
+      mockRequest.mockImplementation((options: any, callback: any) => {
+        const mockResponse: any = {
           statusCode: 200,
-          on: jest.fn((event, handler) => {
+          on: jest.fn((event: string, handler: any) => {
             if (event === 'end') {
               setTimeout(() => handler(), 0);
             }
@@ -74,10 +74,10 @@ describe('notify-teams', () => {
       });
 
       const mockRequest = https.request as jest.Mock;
-      mockRequest.mockImplementation((options, callback) => {
-        const mockResponse = {
+      mockRequest.mockImplementation((options: any, callback: any) => {
+        const mockResponse: any = {
           statusCode: 200,
-          on: jest.fn((event, handler) => {
+          on: jest.fn((event: string, handler: any) => {
             if (event === 'end') {
               setTimeout(() => handler(), 0);
             }
@@ -113,10 +113,10 @@ describe('notify-teams', () => {
       process.env.TEAMS_WORKFLOWS_URL = 'https://example.com/workflows/trigger';
 
       const mockRequest = https.request as jest.Mock;
-      mockRequest.mockImplementation((options, callback) => {
-        const mockResponse = {
+      mockRequest.mockImplementation((options: any, callback: any) => {
+        const mockResponse: any = {
           statusCode: 200,
-          on: jest.fn((event, handler) => {
+          on: jest.fn((event: string, handler: any) => {
             if (event === 'end') {
               setTimeout(() => handler(), 0);
             }
@@ -181,7 +181,7 @@ describe('notify-teams', () => {
         ],
       };
 
-      await expect(handler(mockEvent, {} as any)).rejects.toThrow('TEAMS_WORKFLOWS_URL環境変数またはSecrets ManagerにURLが設定されていません');
+      await expect(handler(mockEvent, {} as any, jest.fn())).rejects.toThrow('TEAMS_WORKFLOWS_URL環境変数またはSecrets ManagerにURLが設定されていません');
     });
 
     it('一部のドキュメント送信が失敗しても成功した分は返す', async () => {
@@ -189,11 +189,11 @@ describe('notify-teams', () => {
 
       let callCount = 0;
       const mockRequest = https.request as jest.Mock;
-      mockRequest.mockImplementation((options, callback) => {
+      mockRequest.mockImplementation((options: any, callback: any) => {
         callCount++;
-        const mockResponse = {
+        const mockResponse: any = {
           statusCode: callCount === 1 ? 200 : 500,
-          on: jest.fn((event, handler) => {
+          on: jest.fn((event: string, handler: any) => {
             if (event === 'end') {
               setTimeout(() => handler(), 0);
             }
@@ -237,10 +237,10 @@ describe('notify-teams', () => {
       process.env.TEAMS_WORKFLOWS_URL = 'https://example.com/workflows/trigger';
 
       const mockRequest = https.request as jest.Mock;
-      mockRequest.mockImplementation((options, callback) => {
-        const mockResponse = {
+      mockRequest.mockImplementation((options: any, callback: any) => {
+        const mockResponse: any = {
           statusCode: 404,
-          on: jest.fn((event, handler) => {
+          on: jest.fn((event: string, handler: any) => {
             if (event === 'data') {
               setTimeout(() => handler('Not Found'), 0);
             } else if (event === 'end') {

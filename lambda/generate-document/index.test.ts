@@ -171,6 +171,7 @@ describe('generate-document', () => {
     });
 
     it('担当者が未割り当ての課題も処理できる', async () => {
+      const today = new Date().toISOString().split('T')[0];
       const mockEvent = {
         projects: [
           {
@@ -183,6 +184,7 @@ describe('generate-document', () => {
                 summary: 'Test Issue',
                 description: '',
                 status: { id: 1, name: '未対応' },
+                startDate: today, // 本日対応予定として表示される
                 priority: { id: 1, name: '中' },
                 url: 'https://example.com/view/PROJECT1-1',
                 project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },

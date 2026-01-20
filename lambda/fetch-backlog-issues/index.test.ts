@@ -60,19 +60,25 @@ describe('fetch-backlog-issues', () => {
 
       // HTTPSリクエストのモック
       const mockRequest = https.request as jest.Mock;
-      let responseCallback: ((res: any) => void) | null = null;
+      let requestCount = 0;
 
-      mockRequest.mockImplementation((options, callback) => {
+      mockRequest.mockImplementation((options: any, callback: any) => {
+        requestCount++;
         const mockResponse: any = {
           statusCode: 200,
           on: jest.fn((event: string, handler: any) => {
             if (event === 'data') {
               setTimeout(() => {
-                if (options.path?.includes('/projects/PROJECT1')) {
+                // プロジェクト情報取得
+                if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
                   handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
-                } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                }
+                // ステータス一覧取得
+                else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                   handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
-                } else if (options.path?.includes('/issues')) {
+                }
+                // 課題一覧取得
+                else if (options.path?.includes('/issues')) {
                   handler(JSON.stringify([]));
                 }
               }, 0);
@@ -82,7 +88,6 @@ describe('fetch-backlog-issues', () => {
             return mockResponse;
           }),
         };
-        responseCallback = callback;
         setTimeout(() => callback(mockResponse), 0);
         return {
           on: jest.fn(),

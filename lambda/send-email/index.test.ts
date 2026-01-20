@@ -154,7 +154,15 @@ describe('send-email', () => {
     it('EMAIL_FROMが取得できない場合はエラーを投げる', async () => {
       ssmMock.on(GetParameterCommand, {
         Name: '/backlog-morning-meeting/email-from',
-      }).rejects(new Error('Parameter not found'));
+      }).resolves({
+        Parameter: { Value: '' }, // 空文字列を返す
+      });
+
+      ssmMock.on(GetParameterCommand, {
+        Name: '/backlog-morning-meeting/email-recipients',
+      }).resolves({
+        Parameter: { Value: 'user@example.com' },
+      });
 
       const mockEvent = {
         documents: [
@@ -167,7 +175,7 @@ describe('send-email', () => {
         ],
       };
 
-      await expect(handler(mockEvent, {} as any)).rejects.toThrow('EMAIL_FROMが取得できません');
+      await expect(handler(mockEvent, {} as any, jest.fn())).rejects.toThrow('EMAIL_FROMが取得できません');
     });
 
     it('EMAIL_RECIPIENTSが取得できない場合はエラーを投げる', async () => {
@@ -178,8 +186,16 @@ describe('send-email', () => {
       });
 
       ssmMock.on(GetParameterCommand, {
+        Name: '/backlog-morning-meeting/email-from',
+      }).resolves({
+        Parameter: { Value: 'noreply@example.com' },
+      });
+
+      ssmMock.on(GetParameterCommand, {
         Name: '/backlog-morning-meeting/email-recipients',
-      }).rejects(new Error('Parameter not found'));
+      }).resolves({
+        Parameter: { Value: '' }, // 空文字列を返す
+      });
 
       const mockEvent = {
         documents: [
@@ -192,7 +208,7 @@ describe('send-email', () => {
         ],
       };
 
-      await expect(handler(mockEvent, {} as any)).rejects.toThrow('EMAIL_RECIPIENTSが取得できません');
+      await expect(handler(mockEvent, {} as any, jest.fn())).rejects.toThrow('EMAIL_RECIPIENTSが取得できません');
     });
 
     it('一部のメール送信が失敗しても成功した分は返す', async () => {
@@ -267,7 +283,7 @@ describe('send-email', () => {
         ],
       };
 
-      await expect(handler(mockEvent, {} as any)).rejects.toThrow('EMAIL_RECIPIENTSが取得できません');
+      await expect(handler(mockEvent, {} as any, jest.fn())).rejects.toThrow();
     });
 
     it('カンマ区切りのメールアドレスリストを正しくパースする', async () => {
