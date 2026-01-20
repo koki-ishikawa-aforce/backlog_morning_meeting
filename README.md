@@ -148,6 +148,28 @@ EMAIL_FROM="noreply@example.com" \
 cdk deploy
 ```
 
+### GitHub Actions自動デプロイ
+
+mainブランチへのpush時に自動的にデプロイが実行されます。
+
+#### GitHub Secretsの設定
+
+リポジトリのSettings > Secrets and variables > Actionsで以下のシークレットを設定してください：
+
+- `AWS_ACCESS_KEY_ID`: AWSアクセスキーID（必須）
+- `AWS_SECRET_ACCESS_KEY`: AWSシークレットアクセスキー（必須）
+- `AWS_ACCOUNT_ID`: AWSアカウントID（必須）
+- `AWS_REGION`: AWSリージョン（オプション、デフォルト: `ap-northeast-1`）
+
+#### IAMユーザーの権限
+
+GitHub Actionsで使用するIAMユーザーには、以下の権限が必要です：
+
+- CDKデプロイに必要な権限（CloudFormation、Lambda、Step Functions、EventBridge、IAM、Secrets Manager、SSM Parameter Store、SESなど）
+- CDKブートストラップ済みのS3バケットとECRリポジトリへのアクセス権限
+
+最小権限の原則に従い、必要最小限の権限を付与することを推奨します。
+
 ## 環境変数
 
 | 変数名                       | 説明                                        | 必須   | デフォルト              |
