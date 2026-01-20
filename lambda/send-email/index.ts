@@ -48,7 +48,7 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
 
     // 各ドキュメントをメール送信
     const results = await Promise.allSettled(
-      documents.map(doc => sendEmail(doc, emailFrom, emailRecipients))
+      documents.map((doc: Document) => sendEmail(doc, emailFrom, emailRecipients))
     );
 
     const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -224,8 +224,8 @@ function markdownToHtml(markdown: string): string {
 
   // テーブル
   html = html.replace(/\|(.+)\|/g, (match, content) => {
-    const cells = content.split('|').map(cell => cell.trim());
-    return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+    const cells = content.split('|').map((cell: string) => cell.trim());
+    return `<tr>${cells.map((cell: string) => `<td>${cell}</td>`).join('')}</tr>`;
   });
 
   // テーブルヘッダー

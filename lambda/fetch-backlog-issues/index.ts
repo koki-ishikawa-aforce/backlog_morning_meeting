@@ -96,7 +96,7 @@ interface LambdaResponse {
     activeAssigneeIds: number[];
 }
 
-export const handler: Handler = async (event): Promise<LambdaResponse> => {
+export const handler: Handler<{}, LambdaResponse> = async (event): Promise<LambdaResponse> => {
     try {
         // 環境変数から設定を取得
         const secretName = process.env.BACKLOG_SECRET_NAME || 'backlog-morning-meeting/backlog-credentials';

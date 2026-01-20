@@ -55,7 +55,7 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
 
     // 各ドキュメントをTeams Workflowsに送信
     const results = await Promise.allSettled(
-      documents.map(doc => sendToTeamsWorkflows(doc, teamsWorkflowsUrl))
+      documents.map((doc: Document) => sendToTeamsWorkflows(doc, teamsWorkflowsUrl))
     );
 
     const successCount = results.filter(r => r.status === 'fulfilled').length;
