@@ -162,12 +162,28 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     .filter(s => s.name !== '完了' && s.name !== 'クローズ' && s.name !== 'Closed')
                     .map(s => s.id);
 
-                // 本日対応予定の課題（開始日が今日）
-                const todayIssues = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
-                    startDateSince: today,
+                // 本日対応予定の課題（開始日から期限日の期間に今日が含まれる課題）
+                // Backlog APIの制約により、開始日が今日以前の課題と期限日が今日以降の課題を取得してフィルタリング
+                const issuesWithStartDateUntilToday = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
                     startDateUntil: today,
                     statusId: incompleteStatusIds,
                 }, credentials);
+                
+                const issuesWithDueDateSinceToday = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
+                    dueDateSince: today,
+                    statusId: incompleteStatusIds,
+                }, credentials);
+                
+                // 両方の条件を満たす課題を抽出（startDate <= today && dueDate >= today）
+                const todayIssuesSet = new Set(issuesWithStartDateUntilToday.map(issue => issue.id));
+                const todayIssues = issuesWithDueDateSinceToday.filter(issue => {
+                    if (!todayIssuesSet.has(issue.id)) return false;
+                    if (!issue.startDate || !issue.dueDate) return false;
+                    const startDate = new Date(issue.startDate);
+                    const dueDate = new Date(issue.dueDate);
+                    const todayDate = new Date(today);
+                    return startDate <= todayDate && dueDate >= todayDate;
+                });
 
                 // 過去のスケジュールで未完了の課題（開始日が過去、ステータスが未完了）
                 const yesterdayStr = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -176,15 +192,15 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     statusId: incompleteStatusIds,
                 }, credentials);
 
-                // 期限が近い課題（期限日が今日から7日以内、未完了）
-                const dueSoonIssues = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
+                // 今日締め切りの課題（期限日が今日、未完了）
+                const dueTodayIssues = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
                     dueDateSince: today,
-                    dueDateUntil: sevenDaysLaterStr,
+                    dueDateUntil: today,
                     statusId: incompleteStatusIds,
                 }, credentials);
 
                 // 課題をマージして重複を除去
-                const allIssues = [...todayIssues, ...incompleteIssues, ...dueSoonIssues];
+                const allIssues = [...todayIssues, ...incompleteIssues, ...dueTodayIssues];
                 const uniqueIssues = Array.from(
                     new Map(allIssues.map(issue => [issue.id, issue])).values()
                 );

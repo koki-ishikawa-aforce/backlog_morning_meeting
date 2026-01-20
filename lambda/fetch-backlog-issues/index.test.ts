@@ -77,9 +77,14 @@ describe('fetch-backlog-issues', () => {
                 else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                   handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
                 }
-                // 課題一覧取得
+                // 課題一覧取得（本日対応予定、期限超過、今日締め切りの各クエリに対応）
                 else if (options.path?.includes('/issues')) {
-                  handler(JSON.stringify([]));
+                  // 本日対応予定の課題のクエリ（startDateUntil: today または dueDateSince: today）
+                  if (options.path?.includes('startDateUntil') || options.path?.includes('dueDateSince')) {
+                    handler(JSON.stringify([]));
+                  } else {
+                    handler(JSON.stringify([]));
+                  }
                 }
               }, 0);
             } else if (event === 'end') {

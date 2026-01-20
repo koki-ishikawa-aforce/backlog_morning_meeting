@@ -153,15 +153,15 @@ async function generateMarkdownDocumentWithOpenAi(
     '  - `## 📊 サマリー`（件数集計の表）',
     '  - `## ⚠️ 期限超過・未完了の課題`',
     '  - `## 📅 本日対応予定の課題`',
-    '  - `## 🔔 期限が近い課題（7日以内）`',
+    '  - `## 🔔 今日締め切りの課題`',
     '- 各セクション内は担当者でグルーピングし、担当者ごとに表形式で出力',
-    '- 表の列: 課題キー / 課題名 / ステータス / 期限日 / 開始日 / 優先度 / カテゴリ / URL',
+    '- 表の列: 課題キー / 課題名 / ステータス / 開始日 / 期限日 / 優先度 / カテゴリ / URL',
     '- URL列は `[リンク](URL)` 形式',
     '- `## 📝 議事録` を最後に追加し、担当者名ごとに見出し（###）とメモ欄を用意する',
     '',
     '【分類ルール】',
-    '- 本日対応予定: startDate が今日（JST）',
-    '- 期限間近: dueDate が今日〜7日以内（JST）',
+    '- 本日対応予定: startDate <= 今日 && dueDate >= 今日（JST）',
+    '- 今日締め切り: dueDate が今日（JST）',
     '- 期限超過・未完了: startDate が過去で、ステータスが完了扱いでないもの',
     '',
     '入力JSON:',
@@ -244,31 +244,36 @@ function generateMarkdownDocument(
   sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
   const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
 
-  const todayIssues = issues.filter(issue => issue.startDate === today);
+  const todayIssues = issues.filter(issue => {
+    if (!issue.startDate || !issue.dueDate) return false;
+    const startDate = new Date(issue.startDate);
+    const dueDate = new Date(issue.dueDate);
+    const todayDate = new Date(today);
+    return startDate <= todayDate && dueDate >= todayDate;
+  });
   const incompleteIssues = issues.filter(issue => {
     if (!issue.startDate) return false;
     const startDate = new Date(issue.startDate);
     const todayDate = new Date(today);
     return startDate < todayDate && issue.status.name !== '完了';
   });
-  const dueSoonIssues = issues.filter(issue => {
+  const dueTodayIssues = issues.filter(issue => {
     if (!issue.dueDate) return false;
     const dueDate = new Date(issue.dueDate);
     const todayDate = new Date(today);
-    const sevenDaysLaterDate = new Date(sevenDaysLaterStr);
-    return dueDate >= todayDate && dueDate <= sevenDaysLaterDate;
+    return dueDate.toISOString().split('T')[0] === todayDate.toISOString().split('T')[0];
   });
 
   // 統計情報
   const summary = {
     today: todayIssues.length,
     incomplete: incompleteIssues.length,
-    dueSoon: dueSoonIssues.length,
+    dueToday: dueTodayIssues.length,
   };
 
   // 担当者リストを取得（課題から抽出）
   const assignees = new Set<string>();
-  [...todayIssues, ...incompleteIssues, ...dueSoonIssues].forEach(issue => {
+  [...todayIssues, ...incompleteIssues, ...dueTodayIssues].forEach(issue => {
     if (issue.assignee) {
       assignees.add(issue.assignee.name);
     }
@@ -285,7 +290,7 @@ function generateMarkdownDocument(
   markdown += `|:---|:---:|\n`;
   markdown += `| 本日対応予定 | ${summary.today}件 |\n`;
   markdown += `| 未完了課題 | ${summary.incomplete}件 |\n`;
-  markdown += `| 期限間近（7日以内） | ${summary.dueSoon}件 |\n\n`;
+  markdown += `| 今日締め切り | ${summary.dueToday}件 |\n\n`;
 
   // 期限超過・未完了の課題
   if (incompleteIssues.length > 0) {
@@ -299,10 +304,10 @@ function generateMarkdownDocument(
     markdown += generateIssuesByAssignee(todayIssues);
   }
 
-  // 期限が近い課題
-  if (dueSoonIssues.length > 0) {
-    markdown += `## 🔔 期限が近い課題（7日以内）\n\n`;
-    markdown += generateIssuesByAssignee(dueSoonIssues);
+  // 今日締め切りの課題
+  if (dueTodayIssues.length > 0) {
+    markdown += `## 🔔 今日締め切りの課題\n\n`;
+    markdown += generateIssuesByAssignee(dueTodayIssues);
   }
 
   // 議事録セクション
@@ -344,7 +349,7 @@ function generateIssuesByAssignee(issues: Issue[]): string {
     const assigneeIssues = issuesByAssignee.get(assigneeName)!;
 
     markdown += `### ${assigneeName}\n\n`;
-    markdown += `| 課題キー | 課題名 | ステータス | 期限日 | 開始日 | 優先度 | カテゴリ | URL |\n`;
+    markdown += `| 課題キー | 課題名 | ステータス | 開始日 | 期限日 | 優先度 | カテゴリ | URL |\n`;
     markdown += `|:---|:---|:---|:---|:---|:---|:---|:---|\n`;
 
     for (const issue of assigneeIssues) {
@@ -359,7 +364,7 @@ function generateIssuesByAssignee(issues: Issue[]): string {
         : '-';
       const url = issue.url;
 
-      markdown += `| ${issueKey} | ${summary} | ${status} | ${dueDate} | ${startDate} | ${priority} | ${category} | [リンク](${url}) |\n`;
+      markdown += `| ${issueKey} | ${summary} | ${status} | ${startDate} | ${dueDate} | ${priority} | ${category} | [リンク](${url}) |\n`;
     }
 
     // 課題の説明を追加
