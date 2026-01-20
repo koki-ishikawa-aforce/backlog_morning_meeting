@@ -163,26 +163,37 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     .map(s => s.id);
 
                 // 本日対応予定の課題（開始日から期限日の期間に今日が含まれる課題）
-                // Backlog APIの制約により、開始日が今日以前の課題と期限日が今日以降の課題を取得してフィルタリング
-                const issuesWithStartDateUntilToday = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
-                    startDateUntil: today,
+                // より広範囲に課題を取得してからフィルタリング（確実性を重視）
+                // 開始日が設定されている未完了課題を広範囲に取得（過去から未来まで）
+                // 期限日が設定されている未完了課題を広範囲に取得（過去から未来まで）
+                // 両方をマージして重複を除去し、フィルタリングで本日対応予定の課題を抽出
+                
+                // 開始日が設定されている未完了課題を取得（広範囲: 過去30日から未来30日）
+                const past30Days = new Date(jstNow.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const future30Days = new Date(jstNow.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                
+                const issuesWithStartDate = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
+                    startDateSince: past30Days,
+                    startDateUntil: future30Days,
                     statusId: incompleteStatusIds,
                 }, credentials);
                 
-                const issuesWithDueDateSinceToday = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
-                    dueDateSince: today,
+                // 期限日が設定されている未完了課題を取得（広範囲: 過去30日から未来30日）
+                const issuesWithDueDate = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
+                    dueDateSince: past30Days,
+                    dueDateUntil: future30Days,
                     statusId: incompleteStatusIds,
                 }, credentials);
                 
                 // 両方のクエリ結果をマージして重複を除去
-                const allPotentialTodayIssues = [...issuesWithStartDateUntilToday, ...issuesWithDueDateSinceToday];
+                const allPotentialTodayIssues = [...issuesWithStartDate, ...issuesWithDueDate];
                 const uniquePotentialTodayIssues = Array.from(
                     new Map(allPotentialTodayIssues.map(issue => [issue.id, issue])).values()
                 );
                 
                 // 本日対応予定の課題を抽出
                 // 開始日と期限日の両方が設定されている場合: startDate <= today && dueDate >= today
-                // 開始日のみ設定されている場合: startDate <= today
+                // 開始日のみ設定されている場合: startDate <= today（開始日が未来の場合は除外）
                 // 期限日のみ設定されている場合: dueDate >= today
                 const todayIssues = uniquePotentialTodayIssues.filter(issue => {
                     const todayStr = today;
@@ -191,18 +202,23 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     if (issue.startDate && issue.dueDate) {
                         const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
                         const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                        // 開始日が未来の場合は除外
+                        if (startDateStr > todayStr) return false;
                         return startDateStr <= todayStr && dueDateStr >= todayStr;
                     }
                     
                     // 開始日のみ設定されている場合
                     if (issue.startDate && !issue.dueDate) {
                         const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+                        // 開始日が未来の場合は除外
+                        if (startDateStr > todayStr) return false;
                         return startDateStr <= todayStr;
                     }
                     
                     // 期限日のみ設定されている場合
                     if (!issue.startDate && issue.dueDate) {
                         const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                        // 期限日が今日以降なら対応予定（開始日が未設定なので、開始日のチェックは不要）
                         return dueDateStr >= todayStr;
                     }
                     

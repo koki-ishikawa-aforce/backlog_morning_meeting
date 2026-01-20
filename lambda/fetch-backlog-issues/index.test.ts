@@ -79,12 +79,10 @@ describe('fetch-backlog-issues', () => {
                 }
                 // 課題一覧取得（本日対応予定、期限超過、今日締め切りの各クエリに対応）
                 else if (options.path?.includes('/issues')) {
-                  // 本日対応予定の課題のクエリ（startDateUntil: today または dueDateSince: today）
-                  if (options.path?.includes('startDateUntil') || options.path?.includes('dueDateSince')) {
-                    handler(JSON.stringify([]));
-                  } else {
-                    handler(JSON.stringify([]));
-                  }
+                  // 本日対応予定の課題のクエリ（startDateSince/startDateUntil または dueDateSince/dueDateUntil）
+                  // 期限超過の課題のクエリ（startDateUntil: yesterday）
+                  // 今日締め切りの課題のクエリ（dueDateSince: today, dueDateUntil: today）
+                  handler(JSON.stringify([]));
                 }
               }, 0);
             } else if (event === 'end') {

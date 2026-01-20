@@ -241,6 +241,20 @@ describe('generate-document', () => {
                 project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
               },
               {
+                id: 5,
+                issueKey: 'PROJECT1-5',
+                summary: '本日対応予定ではない課題（開始日が未来、期限日が今日）',
+                description: '',
+                status: { id: 1, name: '未対応' },
+                assignee: { id: 1, name: 'Test User' },
+                startDate: tomorrow, // 開始日が未来
+                dueDate: today, // 期限日が今日
+                priority: { id: 1, name: '中' },
+                category: [],
+                url: 'https://example.com/view/PROJECT1-5',
+                project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+              },
+              {
                 id: 3,
                 issueKey: 'PROJECT1-3',
                 summary: '本日対応予定の課題（開始日のみ、今日以前）',
@@ -280,6 +294,11 @@ describe('generate-document', () => {
       expect(result.documents[0].content).toContain('本日対応予定の課題（開始日のみ、今日以前）');
       expect(result.documents[0].content).toContain('本日対応予定の課題（期限日のみ、今日以降）');
       expect(result.documents[0].content).not.toContain('本日対応予定ではない課題（開始日が明日）');
+      // 開始日が未来で期限日が今日の課題は「今日締め切りの課題」セクションに含まれる（正しい動作）
+      // 「本日対応予定の課題」セクションには含まれないことを確認
+      const content = result.documents[0].content;
+      const todayIssuesSection = content.split('## 📅 本日対応予定の課題')[1]?.split('## 🔔')[0] || '';
+      expect(todayIssuesSection).not.toContain('本日対応予定ではない課題（開始日が未来、期限日が今日）');
     });
 
     it('今日締め切りの課題を正しく抽出する', async () => {

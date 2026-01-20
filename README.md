@@ -20,9 +20,9 @@ Lambda: generate-document (Markdown生成)
 ## 機能
 
 - **Backlogから課題を取得**
-  - 本日対応予定の課題（開始日が今日）
+  - 本日対応予定の課題（開始日から期限日の期間に今日が含まれる課題）
   - 過去のスケジュールで未完了の課題
-  - 期限が近い課題（7日以内）
+  - 今日が期限の課題（期限日が今日）
 
 - **Markdownドキュメント生成**
   - プロジェクトごとに別ドキュメントを生成
@@ -194,10 +194,105 @@ Teams Workflowsで以下のフローを作成してください：
    - リクエストボディから`fileName`と`content`を取得
    - SharePointのドキュメントライブラリに保存
 
+   **リクエストボディの構造**:
+   ```json
+   {
+     "fileName": "morning-meeting-PROJECT1-2024-01-20.md",
+     "projectKey": "PROJECT1",
+     "projectName": "Project 1",
+     "content": "# 【朝会ドキュメント】...",
+     "timestamp": "2024-01-20T10:00:00.000Z"
+   }
+   ```
+
+   **Teams Workflowsでの設定例**:
+   - **「Create file」アクションを使用する場合**:
+     - `Site Address`: SharePointサイトのURL（例: `https://yourtenant.sharepoint.com/sites/YourSite`）
+     - `Folder Path`: 保存先フォルダパス（例: `/Shared Documents/朝会ドキュメント`）
+     - `File Name`: `triggerBody()?['fileName']` の動的コンテンツ
+     - `File Content`: `triggerBody()?['content']` の動的コンテンツ
+     
+     **ファイル作成後のリンク取得方法**:
+     - 「Create file」アクションの出力から、以下のプロパティでファイルのURLを取得できます:
+       - `body('Create_file')?['WebUrl']`: ファイルのWeb URL（ブラウザで開く用）
+       - `body('Create_file')?['Path']`: ファイルのパス
+       - `body('Create_file')?['Id']`: ファイルのID
+     
+     **動的コンテンツの選択方法**:
+     1. 「Post a message in a chat or channel」アクションのメッセージ欄で「動的コンテンツを追加」をクリック
+     2. 「Create file」アクションを選択
+     3. 「WebUrl」または「Path」プロパティを選択
+   
+   - **「Send an HTTP request to SharePoint」アクションを使用する場合**:
+     - `Site Address`: SharePointサイトのURL
+     - `Method`: `POST`
+     - `Uri`: `/sites/{site-id}/drive/items/{folder-id}/children`
+     - `Headers`: 
+       ```json
+       {
+         "Content-Type": "application/json"
+       }
+       ```
+     - `Body`: 
+       ```json
+       {
+         "name": "@{triggerBody()?['fileName']}",
+         "file": {
+           "mimeType": "text/markdown",
+           "contentBytes": "@{base64(triggerBody()?['content'])}"
+         }
+       }
+       ```
+     
+     **ファイル作成後のリンク取得方法**:
+     - レスポンスボディから`webUrl`プロパティを取得:
+       - `body('Send_an_HTTP_request_to_SharePoint')?['body/webUrl']`
+       - または、レスポンス全体から: `body('Send_an_HTTP_request_to_SharePoint')?['body']` を選択し、`webUrl`プロパティを参照
+
 3. **Teamsチャネルに通知**
    - 「Post a message in a chat or channel」アクションを使用
    - Markdownテキストを投稿
    - SharePointに保存したファイルのリンクを含める
+
+   **メッセージ例**:
+   
+   **シンプルな形式（推奨）**:
+   ```
+   📅 朝会ドキュメントを作成しました: `@{triggerBody()?['fileName']}`
+   
+   📎 [SharePointで開く](@{body('Create_file')?['WebUrl']})
+   ```
+   
+   **詳細な形式**:
+   ```
+   📅 朝会ドキュメントが作成されました
+   
+   **ファイル名**: `@{triggerBody()?['fileName']}`
+   **プロジェクト**: @{triggerBody()?['projectName']} (@{triggerBody()?['projectKey']})
+   **作成日時**: @{formatDateTime(triggerBody()?['timestamp'], 'yyyy/MM/dd HH:mm')}
+   
+   📎 [SharePointで開く](@{body('Create_file')?['WebUrl']})
+   ```
+   
+   **動的コンテンツの説明**:
+   - `triggerBody()?['fileName']`: リクエストボディからファイル名を取得
+   - `triggerBody()?['projectName']`: プロジェクト名を取得
+   - `triggerBody()?['projectKey']`: プロジェクトキーを取得
+   - `triggerBody()?['timestamp']`: タイムスタンプを取得
+   - `body('Create_file')?['WebUrl']`: 「Create file」アクションの出力からSharePointファイルのURLを取得
+   
+   **重要**: 
+   - `body('Create_file')?['WebUrl']`の`'Create_file'`は、実際のアクション名に置き換える必要があります
+   - アクション名が「ファイルを作成する」などの日本語の場合: `body('ファイルを作成する')?['WebUrl']`
+   - アクション名が「Create file」などの英語の場合: `body('Create file')?['WebUrl']`
+   - 動的コンテンツピッカーを使用する場合:
+     1. メッセージ欄で「動的コンテンツを追加」をクリック
+     2. 「Create file」（または実際のアクション名）を選択
+     3. 「WebUrl」プロパティを選択
+   - SharePointファイルのURLが取得できない場合は、手動でURLを構築することもできます:
+     ```
+     📎 [SharePointで開く](https://yourtenant.sharepoint.com/sites/YourSite/Shared%20Documents/@{triggerBody()?['fileName']})
+     ```
 
 ## 生成されるドキュメントの形式
 
@@ -211,7 +306,7 @@ Teams Workflowsで以下のフローを作成してください：
 | :------------------ | :---: |
 | 本日対応予定        |  X件  |
 | 未完了課題          |  Y件  |
-| 期限間近（7日以内） |  Z件  |
+| 今日締め切り        |  Z件  |
 
 ## ⚠️ 期限超過・未完了の課題
 ### [担当者名]
@@ -221,7 +316,7 @@ Teams Workflowsで以下のフローを作成してください：
 ## 📅 本日対応予定の課題
 ...
 
-## 🔔 期限が近い課題（7日以内）
+## 🔔 今日締め切りの課題
 ...
 
 ## 📝 議事録

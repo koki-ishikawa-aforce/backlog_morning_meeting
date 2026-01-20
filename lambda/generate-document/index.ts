@@ -251,18 +251,24 @@ function generateMarkdownDocument(
     if (issue.startDate && issue.dueDate) {
       const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
       const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+      // 開始日が未来の場合は除外
+      if (startDateStr > todayStr) return false;
       return startDateStr <= todayStr && dueDateStr >= todayStr;
     }
     
     // 開始日のみ設定されている場合
     if (issue.startDate && !issue.dueDate) {
       const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+      // 開始日が未来の場合は除外
+      if (startDateStr > todayStr) return false;
       return startDateStr <= todayStr;
     }
     
     // 期限日のみ設定されている場合
     if (!issue.startDate && issue.dueDate) {
       const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+      // 期限日が今日以降なら対応予定
+      // ただし、開始日が未設定の場合は、期限日が今日以降なら対応予定として扱う
       return dueDateStr >= todayStr;
     }
     
