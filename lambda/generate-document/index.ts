@@ -115,49 +115,6 @@ async function getOpenAiApiKey(secretName: string): Promise<string> {
   }
 }
 
-const MAX_RETRIES = 3;
-
-// 課題件数をカウント
-function countIssues(groups: IssuesByAssignee[]): number {
-  return groups.reduce((sum, g) => sum + g.issues.length, 0);
-}
-
-// LLMによる検証
-async function validateWithLlm(
-  markdown: string,
-  expectedCounts: { today: number; incomplete: number; dueToday: number },
-  apiKey: string,
-  model: string
-): Promise<{ valid: boolean; reason?: string }> {
-  const system = `あなたはMarkdownドキュメントの検証を行うアシスタントです。
-サマリセクションの件数が期待値と一致しているか確認してください。
-必ず以下のJSON形式のみを出力してください（他の文字は一切出力しないでください）:
-{"valid": true} または {"valid": false, "reason": "不一致の理由"}`;
-
-  const user = `以下のMarkdownドキュメントのサマリ件数を検証してください。
-
-【期待値】
-- 本日対応予定: ${expectedCounts.today}件
-- 未完了課題: ${expectedCounts.incomplete}件
-- 今日締め切り: ${expectedCounts.dueToday}件
-
-【検証対象のMarkdown】
-${markdown}`;
-
-  try {
-    const response = await callOpenAiChatCompletion({ apiKey, model, system, user });
-    // JSON部分を抽出（前後に余計な文字がある場合に対応）
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return { valid: false, reason: '検証レスポンスのパースに失敗' };
-    }
-    return JSON.parse(jsonMatch[0]) as { valid: boolean; reason?: string };
-  } catch (e) {
-    console.warn('検証LLM呼び出しエラー:', e);
-    return { valid: false, reason: '検証LLM呼び出しに失敗' };
-  }
-}
-
 async function generateMarkdownDocumentWithOpenAi(
   project: ProjectData,
   dateStr: string,
@@ -168,13 +125,6 @@ async function generateMarkdownDocumentWithOpenAi(
 ): Promise<Document> {
   const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
   const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
-
-  // 期待されるサマリ件数
-  const expectedCounts = {
-    today: countIssues(todayIssues),
-    incomplete: countIssues(incompleteIssues),
-    dueToday: countIssues(dueTodayIssues),
-  };
 
   // 担当者グループをシンプルな形式に変換（トークン削減のためdescriptionは除外）
   const convertToSimpleFormat = (groups: IssuesByAssignee[]) =>
@@ -234,40 +184,24 @@ async function generateMarkdownDocumentWithOpenAi(
     JSON.stringify(input),
   ].join('\n');
 
-  // リトライ付き生成
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const markdown = await callOpenAiChatCompletion({
-        apiKey,
-        model,
-        system,
-        user,
-      });
+  try {
+    const markdown = await callOpenAiChatCompletion({
+      apiKey,
+      model,
+      system,
+      user,
+    });
 
-      const sanitized = sanitizeMarkdown(markdown);
-
-      // LLMによる検証
-      const validation = await validateWithLlm(sanitized, expectedCounts, apiKey, model);
-
-      if (validation.valid) {
-        console.log(`検証成功 (試行 ${attempt}/${MAX_RETRIES})`);
-        return {
-          projectKey,
-          projectName,
-          fileName,
-          content: sanitized,
-        };
-      }
-
-      console.warn(`検証失敗 (試行 ${attempt}/${MAX_RETRIES}): ${validation.reason}`);
-    } catch (e) {
-      console.error(`OpenAI生成エラー (試行 ${attempt}/${MAX_RETRIES}):`, e);
-    }
+    return {
+      projectKey,
+      projectName,
+      fileName,
+      content: sanitizeMarkdown(markdown),
+    };
+  } catch (e) {
+    console.error('OpenAI生成に失敗。フォールバックで生成します:', e);
+    return generateMarkdownDocument(project, dateStr, timeStr, fileNameDateStr);
   }
-
-  // 3回失敗: フォールバック生成を使用
-  console.error('LLM生成が3回検証失敗。フォールバックを使用します。');
-  return generateMarkdownDocument(project, dateStr, timeStr, fileNameDateStr);
 }
 
 async function callOpenAiChatCompletion(params: {
