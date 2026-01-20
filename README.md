@@ -33,14 +33,14 @@ Lambda: generate-document (Markdown生成)
 - **通知**
   - Teams Workflows経由でSharePointに保存
   - Teamsチャネルに通知
-  - メール送信（SES経由）
+  - メール送信（SES経由・Markdownを `.md` 添付）
 
 ## 前提条件
 
 - Node.js 20.x以上
 - AWS CLIが設定済み
 - AWS CDK CLIがインストール済み（`npm install -g aws-cdk`）
-- Backlog MCPサーバーが設定済み
+- Backlog APIキーが取得済み
 - Teams Workflows HTTPトリガーが設定済み
 
 ## セットアップ
@@ -58,8 +58,12 @@ npm install
 ```bash
 aws secretsmanager create-secret \
   --name backlog-morning-meeting/backlog-credentials \
-  --secret-string '{"apiKey":"YOUR_API_KEY","spaceId":"YOUR_SPACE_ID"}'
+  --secret-string '{"apiKey":"YOUR_API_KEY","spaceId":"YOUR_SPACE_ID","domain":"backlog.com"}'
 ```
+
+- `apiKey`: BacklogのAPIキー（個人設定 → API → 新しいAPIキーの発行）
+- `spaceId`: BacklogのスペースID（URLの `https://{spaceId}.backlog.com` の部分）
+- `domain`: `backlog.com` または `backlog.jp`（使用しているドメインに応じて設定）
 
 または、AWSコンソールから手動で作成してください。
 
@@ -71,26 +75,37 @@ aws secretsmanager create-secret \
   --secret-string '{"url":"YOUR_TEAMS_WORKFLOWS_HTTP_TRIGGER_URL"}'
 ```
 
-### 3. Parameter Storeの設定（担当者ID管理）
+### 3. Parameter Storeの設定（AWS側で設定値を一元管理）
 
 ```bash
+# 対象プロジェクトキー（必須）
+aws ssm put-parameter \
+  --name /backlog-morning-meeting/project-keys \
+  --value "PROJECT1,PROJECT2" \
+  --type String
+
+# 有効な担当者ID（オプション: StringList推奨 / 例はカンマ区切り）
 aws ssm put-parameter \
   --name /backlog-morning-meeting/active-assignee-ids \
-  --value '[123,456,789]' \
+  --value "123,456,789" \
+  --type StringList
+
+# メール設定（必須）
+aws ssm put-parameter \
+  --name /backlog-morning-meeting/email-from \
+  --value "noreply@example.com" \
   --type String
+
+aws ssm put-parameter \
+  --name /backlog-morning-meeting/email-recipients \
+  --value "user1@example.com,user2@example.com" \
+  --type StringList
 ```
 
 ### 4. 環境変数の設定
 
-`.env`ファイルを作成するか、デプロイ時に環境変数を設定してください：
-
-```bash
-export BACKLOG_PROJECT_KEYS="PROJECT1,PROJECT2"
-export ACTIVE_ASSIGNEE_IDS="123,456,789"  # オプション（Parameter Storeを使用する場合は不要）
-export TEAMS_WORKFLOWS_URL="https://..."  # オプション（Secrets Managerを使用する場合は不要）
-export EMAIL_RECIPIENTS="user1@example.com,user2@example.com"
-export EMAIL_FROM="noreply@example.com"
-```
+原則不要です（設定値は Secrets Manager / Parameter Store から実行時に取得します）。
+Teams Workflows URLのみ、環境変数 `TEAMS_WORKFLOWS_URL` でも上書き可能ですが、基本はSecrets Managerを推奨します。
 
 ### 5. SESの設定
 
@@ -126,13 +141,14 @@ cdk deploy
 
 ## 環境変数
 
-| 変数名 | 説明 | 必須 | デフォルト |
-|:---|:---|:---|:---|
-| `BACKLOG_PROJECT_KEYS` | 対象プロジェクトキー（カンマ区切り） | はい | - |
-| `ACTIVE_ASSIGNEE_IDS` | 有効な担当者ID（カンマ区切り） | いいえ | Parameter Storeから取得 |
-| `TEAMS_WORKFLOWS_URL` | Teams Workflows HTTPトリガーURL | いいえ | Secrets Managerから取得 |
-| `EMAIL_RECIPIENTS` | メール送信先（カンマ区切り） | はい | - |
-| `EMAIL_FROM` | 送信元メールアドレス | はい | - |
+| 変数名                       | 説明                                        | 必須   | デフォルト              |
+| :--------------------------- | :------------------------------------------ | :----- | :---------------------- |
+| `TEAMS_WORKFLOWS_URL`        | Teams Workflows HTTPトリガーURL（上書き用） | いいえ | Secrets Managerから取得 |
+| `BACKLOG_SECRET_NAME`        | Backlog認証情報Secret名                     | いいえ | CDKで固定               |
+| `BACKLOG_PROJECT_KEYS_PARAM` | 対象プロジェクトキーのSSMパラメータ名       | いいえ | CDKで固定               |
+| `ACTIVE_ASSIGNEE_IDS_PARAM`  | 有効担当者IDのSSMパラメータ名（任意）       | いいえ | CDKで固定               |
+| `EMAIL_FROM_PARAM`           | 送信元のSSMパラメータ名                     | いいえ | CDKで固定               |
+| `EMAIL_RECIPIENTS_PARAM`     | 送信先のSSMパラメータ名                     | いいえ | CDKで固定               |
 
 ## Teams Workflows側の設定
 
@@ -160,11 +176,11 @@ Teams Workflowsで以下のフローを作成してください：
 生成時刻: HH:mm
 
 ## 📊 サマリー
-| 項目 | 件数 |
-|:---|:---:|
-| 本日対応予定 | X件 |
-| 未完了課題 | Y件 |
-| 期限間近（7日以内） | Z件 |
+| 項目                | 件数  |
+| :------------------ | :---: |
+| 本日対応予定        |  X件  |
+| 未完了課題          |  Y件  |
+| 期限間近（7日以内） |  Z件  |
 
 ## ⚠️ 期限超過・未完了の課題
 ### [担当者名]

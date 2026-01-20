@@ -22,11 +22,38 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       'backlog-morning-meeting/backlog-credentials'
     );
 
+    // Secrets Manager: Teams Workflows URL
+    const teamsWorkflowsSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'TeamsWorkflowsSecret',
+      'backlog-morning-meeting/teams-workflows-url'
+    );
+
     // Parameter Store: 有効な担当者ID（オプション）
     const activeAssigneeIdsParam = ssm.StringParameter.fromStringParameterName(
       this,
       'ActiveAssigneeIdsParam',
       '/backlog-morning-meeting/active-assignee-ids'
+    );
+
+    // Parameter Store: 対象プロジェクトキー（必須）
+    const projectKeysParam = ssm.StringParameter.fromStringParameterName(
+      this,
+      'ProjectKeysParam',
+      '/backlog-morning-meeting/project-keys'
+    );
+
+    // Parameter Store: メール設定（必須）
+    const emailFromParam = ssm.StringParameter.fromStringParameterName(
+      this,
+      'EmailFromParam',
+      '/backlog-morning-meeting/email-from'
+    );
+
+    const emailRecipientsParam = ssm.StringParameter.fromStringParameterName(
+      this,
+      'EmailRecipientsParam',
+      '/backlog-morning-meeting/email-recipients'
     );
 
     // Lambda関数: fetch-backlog-issues
@@ -36,10 +63,9 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/fetch-backlog-issues')),
       timeout: cdk.Duration.minutes(5),
       environment: {
-        BACKLOG_PROJECT_KEYS: process.env.BACKLOG_PROJECT_KEYS || '',
-        ACTIVE_ASSIGNEE_IDS: process.env.ACTIVE_ASSIGNEE_IDS || '',
         BACKLOG_SECRET_NAME: backlogSecret.secretName,
-        ACTIVE_ASSIGNEE_IDS_PARAM: '/backlog-morning-meeting/active-assignee-ids',
+        ACTIVE_ASSIGNEE_IDS_PARAM: activeAssigneeIdsParam.parameterName,
+        BACKLOG_PROJECT_KEYS_PARAM: projectKeysParam.parameterName,
       },
     });
 
@@ -48,6 +74,7 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     
     // Parameter Store読み取り権限
     activeAssigneeIdsParam.grantRead(fetchBacklogIssuesFn);
+    projectKeysParam.grantRead(fetchBacklogIssuesFn);
 
     // Lambda関数: generate-document
     const generateDocumentFn = new lambda.Function(this, 'GenerateDocument', {
@@ -64,21 +91,10 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/notify-teams')),
       timeout: cdk.Duration.minutes(2),
-      environment: {
-        TEAMS_WORKFLOWS_URL: process.env.TEAMS_WORKFLOWS_URL || '',
-      },
     });
 
-    // Teams Workflows URLをSecrets Managerで管理する場合（オプション）
-    // 環境変数で設定されていない場合のみSecrets Managerから取得
-    if (!process.env.TEAMS_WORKFLOWS_URL) {
-      const teamsWorkflowsSecret = secretsmanager.Secret.fromSecretNameV2(
-        this,
-        'TeamsWorkflowsSecret',
-        'backlog-morning-meeting/teams-workflows-url'
-      );
-      teamsWorkflowsSecret.grantRead(notifyTeamsFn);
-    }
+    // Teams Workflows URLはSecrets Managerから取得
+    teamsWorkflowsSecret.grantRead(notifyTeamsFn);
 
     // Lambda関数: send-email
     const sendEmailFn = new lambda.Function(this, 'SendEmail', {
@@ -87,11 +103,15 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/send-email')),
       timeout: cdk.Duration.minutes(2),
       environment: {
-        EMAIL_RECIPIENTS: process.env.EMAIL_RECIPIENTS || '',
-        EMAIL_FROM: process.env.EMAIL_FROM || '',
+        EMAIL_FROM_PARAM: emailFromParam.parameterName,
+        EMAIL_RECIPIENTS_PARAM: emailRecipientsParam.parameterName,
         REGION: this.region,
       },
     });
+
+    // Parameter Store読み取り権限（メール設定）
+    emailFromParam.grantRead(sendEmailFn);
+    emailRecipientsParam.grantRead(sendEmailFn);
 
     // SES送信権限
     sendEmailFn.addToRolePolicy(
@@ -103,26 +123,23 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     );
 
     // Step Functions: ステートマシン定義
-    const fetchTask = new tasks.LambdaInvoke(this, 'FetchBacklogIssues', {
+    const fetchTask = new tasks.LambdaInvoke(this, 'FetchBacklogIssuesTask', {
       lambdaFunction: fetchBacklogIssuesFn,
       outputPath: '$.Payload',
     });
 
-    const generateTask = new tasks.LambdaInvoke(this, 'GenerateDocument', {
+    const generateTask = new tasks.LambdaInvoke(this, 'GenerateDocumentTask', {
       lambdaFunction: generateDocumentFn,
-      inputPath: '$.Payload',
       outputPath: '$.Payload',
     });
 
-    const notifyTeamsTask = new tasks.LambdaInvoke(this, 'NotifyTeams', {
+    const notifyTeamsTask = new tasks.LambdaInvoke(this, 'NotifyTeamsTask', {
       lambdaFunction: notifyTeamsFn,
-      inputPath: '$.Payload',
       outputPath: '$.Payload',
     });
 
-    const sendEmailTask = new tasks.LambdaInvoke(this, 'SendEmail', {
+    const sendEmailTask = new tasks.LambdaInvoke(this, 'SendEmailTask', {
       lambdaFunction: sendEmailFn,
-      inputPath: '$.Payload',
       outputPath: '$.Payload',
     });
 

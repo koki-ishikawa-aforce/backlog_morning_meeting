@@ -1,7 +1,9 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses';
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { Handler } from 'aws-lambda';
 
 const ses = new SESClient({});
+const ssm = new SSMClient({});
 
 interface Document {
   projectKey: string;
@@ -30,15 +32,18 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
       };
     }
 
-    const emailFrom = process.env.EMAIL_FROM;
-    const emailRecipients = (process.env.EMAIL_RECIPIENTS || '').split(',').map(e => e.trim()).filter(e => e);
+    const emailFromParam = process.env.EMAIL_FROM_PARAM || '/backlog-morning-meeting/email-from';
+    const emailRecipientsParam = process.env.EMAIL_RECIPIENTS_PARAM || '/backlog-morning-meeting/email-recipients';
+
+    const emailFrom = (await getSsmParameterValue(emailFromParam)).trim();
+    const emailRecipients = parseEmailList(await getSsmParameterValue(emailRecipientsParam));
 
     if (!emailFrom) {
-      throw new Error('EMAIL_FROM環境変数が設定されていません');
+      throw new Error(`EMAIL_FROMが取得できません（SSM: ${emailFromParam}）`);
     }
 
     if (emailRecipients.length === 0) {
-      throw new Error('EMAIL_RECIPIENTS環境変数が設定されていません');
+      throw new Error(`EMAIL_RECIPIENTSが取得できません（SSM: ${emailRecipientsParam}）`);
     }
 
     // 各ドキュメントをメール送信
@@ -68,6 +73,18 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
   }
 };
 
+async function getSsmParameterValue(name: string): Promise<string> {
+  const res = await ssm.send(new GetParameterCommand({ Name: name }));
+  return res.Parameter?.Value || '';
+}
+
+function parseEmailList(value: string): string[] {
+  return (value || '')
+    .split(',')
+    .map(v => v.trim())
+    .filter(v => v.length > 0);
+}
+
 async function sendEmail(
   document: Document,
   from: string,
@@ -76,31 +93,111 @@ async function sendEmail(
   const htmlContent = markdownToHtml(document.content);
   const subject = `【朝会ドキュメント】${document.projectName} - ${document.fileName}`;
 
-  const command = new SendEmailCommand({
+  const raw = buildRawMimeEmail({
+    from,
+    to: recipients,
+    subject,
+    textBody: document.content,
+    htmlBody: htmlContent,
+    attachmentFileName: document.fileName,
+    attachmentContent: document.content,
+  });
+
+  const command = new SendRawEmailCommand({
     Source: from,
-    Destination: {
-      ToAddresses: recipients,
-    },
-    Message: {
-      Subject: {
-        Data: subject,
-        Charset: 'UTF-8',
-      },
-      Body: {
-        Html: {
-          Data: htmlContent,
-          Charset: 'UTF-8',
-        },
-        Text: {
-          Data: document.content,
-          Charset: 'UTF-8',
-        },
-      },
+    Destinations: recipients,
+    RawMessage: {
+      Data: Buffer.from(raw, 'utf-8'),
     },
   });
 
   await ses.send(command);
   console.log(`メール送信成功: ${document.fileName} -> ${recipients.join(', ')}`);
+}
+
+function buildRawMimeEmail(params: {
+  from: string;
+  to: string[];
+  subject: string;
+  textBody: string;
+  htmlBody: string;
+  attachmentFileName: string;
+  attachmentContent: string; // markdown
+}): string {
+  const mixedBoundary = `mixed_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const altBoundary = `alt_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+  const headers = [
+    `From: ${params.from}`,
+    `To: ${params.to.join(', ')}`,
+    `Subject: ${encodeMimeHeader(params.subject)}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`,
+  ].join('\r\n');
+
+  const attachmentBase64 = toBase64Lines(Buffer.from(params.attachmentContent, 'utf-8').toString('base64'));
+
+  const parts: string[] = [];
+
+  // multipart/alternative (text + html)
+  parts.push(
+    [
+      `--${mixedBoundary}`,
+      `Content-Type: multipart/alternative; boundary="${altBoundary}"`,
+      '',
+      `--${altBoundary}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      params.textBody,
+      '',
+      `--${altBoundary}`,
+      'Content-Type: text/html; charset="UTF-8"',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      params.htmlBody,
+      '',
+      `--${altBoundary}--`,
+      '',
+    ].join('\r\n')
+  );
+
+  // Attachment: markdown file
+  parts.push(
+    [
+      `--${mixedBoundary}`,
+      `Content-Type: text/markdown; name="${escapeHeaderValue(params.attachmentFileName)}"; charset="UTF-8"`,
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${escapeHeaderValue(params.attachmentFileName)}"`,
+      '',
+      attachmentBase64,
+      '',
+    ].join('\r\n')
+  );
+
+  // closing boundary
+  parts.push(`--${mixedBoundary}--\r\n`);
+
+  return `${headers}\r\n\r\n${parts.join('')}`;
+}
+
+function toBase64Lines(base64: string, lineLength = 76): string {
+  const lines: string[] = [];
+  for (let i = 0; i < base64.length; i += lineLength) {
+    lines.push(base64.slice(i, i + lineLength));
+  }
+  return lines.join('\r\n');
+}
+
+function encodeMimeHeader(value: string): string {
+  // RFC 2047 (簡易): UTF-8 Base64
+  const b64 = Buffer.from(value, 'utf-8').toString('base64');
+  return `=?UTF-8?B?${b64}?=`;
+}
+
+function escapeHeaderValue(value: string): string {
+  // very small sanitization for header parameters
+  return value.replace(/"/g, "'").replace(/\r|\n/g, ' ');
 }
 
 function markdownToHtml(markdown: string): string {
@@ -179,4 +276,5 @@ function markdownToHtml(markdown: string): string {
 
   return styledHtml;
 }
+
 
