@@ -1,13 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as stepfunctions from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
-import * as ses from 'aws-cdk-lib/aws-ses';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
@@ -29,90 +28,106 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       'backlog-morning-meeting/teams-workflows-url'
     );
 
-    // Parameter Store: 有効な担当者ID（オプション / StringList）
-    const activeAssigneeIdsParam = ssm.StringListParameter.fromStringListParameterName(
-      this,
-      'ActiveAssigneeIdsParam',
-      '/backlog-morning-meeting/active-assignee-ids'
-    );
+    // Parameter Store（パラメータ名は固定。Lambdaが実行時にSSMから値を取得する）
+    // NOTE: CloudFormationがSSM型検証を行い StringList/String の不整合でデプロイが止まることがあるため、
+    // ここではssm.*の型付き参照を避け、文字列 + IAM権限付与に寄せる。
+    const activeAssigneeIdsParamName = '/backlog-morning-meeting/active-assignee-ids';
+    const projectKeysParamName = '/backlog-morning-meeting/project-keys';
+    const emailFromParamName = '/backlog-morning-meeting/email-from';
+    const emailRecipientsParamName = '/backlog-morning-meeting/email-recipients';
 
-    // Parameter Store: 対象プロジェクトキー（必須）
-    const projectKeysParam = ssm.StringParameter.fromStringParameterName(
-      this,
-      'ProjectKeysParam',
-      '/backlog-morning-meeting/project-keys'
-    );
-
-    // Parameter Store: メール設定（必須）
-    const emailFromParam = ssm.StringParameter.fromStringParameterName(
-      this,
-      'EmailFromParam',
-      '/backlog-morning-meeting/email-from'
-    );
-
-    // Parameter Store: メール送信先（必須 / StringList）
-    const emailRecipientsParam = ssm.StringListParameter.fromStringListParameterName(
-      this,
-      'EmailRecipientsParam',
-      '/backlog-morning-meeting/email-recipients'
-    );
-
-    // Lambda関数: fetch-backlog-issues
-    const fetchBacklogIssuesFn = new lambda.Function(this, 'FetchBacklogIssues', {
+    // Lambda関数: fetch-backlog-issues（TypeScriptをデプロイ時にバンドル）
+    const fetchBacklogIssuesFn = new NodejsFunction(this, 'FetchBacklogIssues', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/fetch-backlog-issues')),
+      entry: path.join(__dirname, '../lambda/fetch-backlog-issues/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.minutes(5),
       environment: {
         BACKLOG_SECRET_NAME: backlogSecret.secretName,
-        ACTIVE_ASSIGNEE_IDS_PARAM: activeAssigneeIdsParam.parameterName,
-        BACKLOG_PROJECT_KEYS_PARAM: projectKeysParam.parameterName,
+        ACTIVE_ASSIGNEE_IDS_PARAM: activeAssigneeIdsParamName,
+        BACKLOG_PROJECT_KEYS_PARAM: projectKeysParamName,
+      },
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
       },
     });
 
     // Secrets Manager読み取り権限
     backlogSecret.grantRead(fetchBacklogIssuesFn);
-    
-    // Parameter Store読み取り権限
-    activeAssigneeIdsParam.grantRead(fetchBacklogIssuesFn);
-    projectKeysParam.grantRead(fetchBacklogIssuesFn);
 
-    // Lambda関数: generate-document
-    const generateDocumentFn = new lambda.Function(this, 'GenerateDocument', {
+    // Parameter Store読み取り権限（SSM）
+    fetchBacklogIssuesFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${activeAssigneeIdsParamName}`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${projectKeysParamName}`,
+        ],
+      })
+    );
+
+    // Lambda関数: generate-document（TypeScriptをデプロイ時にバンドル）
+    const generateDocumentFn = new NodejsFunction(this, 'GenerateDocument', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/generate-document')),
+      entry: path.join(__dirname, '../lambda/generate-document/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.minutes(2),
       memorySize: 512,
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
+      },
     });
 
-    // Lambda関数: notify-teams
-    const notifyTeamsFn = new lambda.Function(this, 'NotifyTeams', {
+    // Lambda関数: notify-teams（TypeScriptをデプロイ時にバンドル）
+    const notifyTeamsFn = new NodejsFunction(this, 'NotifyTeams', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/notify-teams')),
+      entry: path.join(__dirname, '../lambda/notify-teams/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.minutes(2),
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
+      },
     });
 
     // Teams Workflows URLはSecrets Managerから取得
     teamsWorkflowsSecret.grantRead(notifyTeamsFn);
 
-    // Lambda関数: send-email
-    const sendEmailFn = new lambda.Function(this, 'SendEmail', {
+    // Lambda関数: send-email（TypeScriptをデプロイ時にバンドル）
+    const sendEmailFn = new NodejsFunction(this, 'SendEmail', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/send-email')),
+      entry: path.join(__dirname, '../lambda/send-email/index.ts'),
+      handler: 'handler',
       timeout: cdk.Duration.minutes(2),
       environment: {
-        EMAIL_FROM_PARAM: emailFromParam.parameterName,
-        EMAIL_RECIPIENTS_PARAM: emailRecipientsParam.parameterName,
+        EMAIL_FROM_PARAM: emailFromParamName,
+        EMAIL_RECIPIENTS_PARAM: emailRecipientsParamName,
         REGION: this.region,
+      },
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
       },
     });
 
     // Parameter Store読み取り権限（メール設定）
-    emailFromParam.grantRead(sendEmailFn);
-    emailRecipientsParam.grantRead(sendEmailFn);
+    sendEmailFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${emailFromParamName}`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter${emailRecipientsParamName}`,
+        ],
+      })
+    );
 
     // SES送信権限
     sendEmailFn.addToRolePolicy(
