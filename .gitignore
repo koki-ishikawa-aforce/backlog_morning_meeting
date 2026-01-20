@@ -1,0 +1,45 @@
+# Compiled JavaScript files
+*.js
+!jest.config.js
+*.d.ts
+
+# CDK asset staging directory
+cdk.out
+cdk.context.json
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Build output
+dist/
+build/
+
+# Lambda dependencies
+lambda/*/node_modules/
+lambda/*/*.zip
+

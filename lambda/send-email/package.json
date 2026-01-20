@@ -1,0 +1,18 @@
+{
+  "name": "send-email",
+  "version": "1.0.0",
+  "description": "SES経由でメール送信するLambda関数",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.490.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.130",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}
+
