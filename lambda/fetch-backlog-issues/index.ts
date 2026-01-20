@@ -87,11 +87,19 @@ interface Issue {
     };
 }
 
+interface IssuesByAssignee {
+    assigneeName: string;
+    assigneeId?: number;
+    issues: Issue[];
+}
+
 interface LambdaResponse {
     projects: Array<{
         projectKey: string;
         projectName: string;
-        issues: Issue[];
+        todayIssues: IssuesByAssignee[];
+        incompleteIssues: IssuesByAssignee[];
+        dueTodayIssues: IssuesByAssignee[];
     }>;
     activeAssigneeIds: number[];
 }
@@ -147,7 +155,13 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
         const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
 
         // プロジェクトごとに課題を取得
-        const projects: Array<{ projectKey: string; projectName: string; issues: Issue[] }> = [];
+        const projects: Array<{
+            projectKey: string;
+            projectName: string;
+            todayIssues: IssuesByAssignee[];
+            incompleteIssues: IssuesByAssignee[];
+            dueTodayIssues: IssuesByAssignee[];
+        }> = [];
 
         for (const projectKey of projectKeys) {
             const trimmedKey = projectKey.trim();
@@ -240,23 +254,21 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     statusId: incompleteStatusIds,
                 }, credentials);
 
-                // 課題をマージして重複を除去
-                const allIssues = [...todayIssues, ...incompleteIssues, ...dueTodayIssues];
-                const uniqueIssues = Array.from(
-                    new Map(allIssues.map(issue => [issue.id, issue])).values()
-                );
+                // 担当者フィルタリング関数
+                const filterByAssignee = (issues: Issue[]) =>
+                    activeAssigneeIds.length > 0
+                        ? issues.filter(issue =>
+                            issue.assignee && activeAssigneeIds.includes(issue.assignee.id)
+                        )
+                        : issues;
 
-                // 担当者フィルタリング
-                const filteredIssues = activeAssigneeIds.length > 0
-                    ? uniqueIssues.filter(issue =>
-                        issue.assignee && activeAssigneeIds.includes(issue.assignee.id)
-                    )
-                    : uniqueIssues;
-
+                // 各リストを個別に担当者フィルタリング・グループ化（リスト間の重複は許可）
                 projects.push({
                     projectKey: trimmedKey,
                     projectName: projectInfo.name,
-                    issues: filteredIssues,
+                    todayIssues: groupIssuesByAssignee(filterByAssignee(todayIssues)),
+                    incompleteIssues: groupIssuesByAssignee(filterByAssignee(incompleteIssues)),
+                    dueTodayIssues: groupIssuesByAssignee(filterByAssignee(dueTodayIssues)),
                 });
             } catch (error) {
                 console.error(`プロジェクト ${trimmedKey} の課題取得に失敗:`, error);
@@ -264,7 +276,9 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                 projects.push({
                     projectKey: trimmedKey,
                     projectName: trimmedKey,
-                    issues: [],
+                    todayIssues: [],
+                    incompleteIssues: [],
+                    dueTodayIssues: [],
                 });
             }
         }
@@ -316,6 +330,30 @@ function parseAssigneeIds(value: string): number[] {
         .split(',')
         .map((s) => parseInt(s.trim(), 10))
         .filter((n) => Number.isFinite(n));
+}
+
+// 課題を担当者別にグループ化
+function groupIssuesByAssignee(issues: Issue[]): IssuesByAssignee[] {
+    const grouped = new Map<string, { assigneeId?: number; issues: Issue[] }>();
+
+    for (const issue of issues) {
+        const name = issue.assignee?.name || '未割り当て';
+        const id = issue.assignee?.id;
+
+        if (!grouped.has(name)) {
+            grouped.set(name, { assigneeId: id, issues: [] });
+        }
+        grouped.get(name)!.issues.push(issue);
+    }
+
+    // 担当者名でソートして返す
+    return Array.from(grouped.entries())
+        .sort(([a], [b]) => a.localeCompare(b, 'ja'))
+        .map(([assigneeName, data]) => ({
+            assigneeName,
+            assigneeId: data.assigneeId,
+            issues: data.issues,
+        }));
 }
 
 // Backlog APIのベースURLを取得

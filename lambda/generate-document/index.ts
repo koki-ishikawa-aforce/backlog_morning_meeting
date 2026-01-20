@@ -34,10 +34,18 @@ interface Issue {
   };
 }
 
+interface IssuesByAssignee {
+  assigneeName: string;
+  assigneeId?: number;
+  issues: Issue[];
+}
+
 interface ProjectData {
   projectKey: string;
   projectName: string;
-  issues: Issue[];
+  todayIssues: IssuesByAssignee[];
+  incompleteIssues: IssuesByAssignee[];
+  dueTodayIssues: IssuesByAssignee[];
 }
 
 interface LambdaEvent {
@@ -115,24 +123,32 @@ async function generateMarkdownDocumentWithOpenAi(
   apiKey: string,
   model: string
 ): Promise<Document> {
-  const { projectKey, projectName, issues } = project;
+  const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
   const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
+
+  // 担当者グループをシンプルな形式に変換
+  const convertToSimpleFormat = (groups: IssuesByAssignee[]) =>
+    groups.map(g => ({
+      assigneeName: g.assigneeName,
+      issues: g.issues.map(i => ({
+        issueKey: i.issueKey,
+        summary: i.summary,
+        description: i.description,
+        status: i.status?.name,
+        dueDate: i.dueDate || null,
+        startDate: i.startDate || null,
+        priority: i.priority?.name,
+        categories: i.category?.map(c => c.name) || [],
+        url: i.url,
+      })),
+    }));
 
   const input = {
     generatedAtJst: { date: dateStr, time: timeStr },
     project: { projectKey, projectName },
-    issues: issues.map(i => ({
-      issueKey: i.issueKey,
-      summary: i.summary,
-      description: i.description,
-      status: i.status?.name,
-      assignee: i.assignee?.name || '未割り当て',
-      dueDate: i.dueDate || null,
-      startDate: i.startDate || null,
-      priority: i.priority?.name,
-      categories: i.category?.map(c => c.name) || [],
-      url: i.url,
-    })),
+    todayIssues: convertToSimpleFormat(todayIssues),
+    incompleteIssues: convertToSimpleFormat(incompleteIssues),
+    dueTodayIssues: convertToSimpleFormat(dueTodayIssues),
   };
 
   const system = [
@@ -146,23 +162,24 @@ async function generateMarkdownDocumentWithOpenAi(
   const user = [
     '次のJSON入力から、朝会用Markdownドキュメントを生成してください。',
     '',
+    '【入力データ構造】',
+    '- todayIssues: 本日対応予定の課題（担当者別にグループ化済み）',
+    '- incompleteIssues: 期限超過・未完了の課題（担当者別にグループ化済み）',
+    '- dueTodayIssues: 今日締め切りの課題（担当者別にグループ化済み）',
+    '※同じ課題が複数のリストに含まれる場合があります（仕様）',
+    '',
     '【出力要件】',
     '- 先頭に: `# 【朝会ドキュメント】YYYY/MM/DD - {プロジェクト名}`',
     '- `生成時刻: HH:mm` を出力',
     '- セクションは以下（該当があるものだけ出す）:',
-    '  - `## 📊 サマリー`（件数集計の表）',
-    '  - `## ⚠️ 期限超過・未完了の課題`',
-    '  - `## 📅 本日対応予定の課題`',
-    '  - `## 🔔 今日締め切りの課題`',
-    '- 各セクション内は担当者でグルーピングし、担当者ごとに表形式で出力',
+    '  - `## 📊 サマリー`（各リストの課題件数集計の表）',
+    '  - `## ⚠️ 期限超過・未完了の課題`（incompleteIssuesを出力）',
+    '  - `## 📅 本日対応予定の課題`（todayIssuesを出力）',
+    '  - `## 🔔 今日締め切りの課題`（dueTodayIssuesを出力）',
+    '- 各セクション内は担当者でグルーピングし、担当者ごとに表形式で出力（データは既にグループ化済み）',
     '- 表の列: 課題キー / 課題名 / ステータス / 開始日 / 期限日 / 優先度 / カテゴリ / URL',
     '- URL列は `[リンク](URL)` 形式',
-    '- `## 📝 議事録` を最後に追加し、担当者名ごとに見出し（###）とメモ欄を用意する',
-    '',
-    '【分類ルール】',
-    '- 本日対応予定: startDate <= 今日 && dueDate >= 今日（JST）',
-    '- 今日締め切り: dueDate が今日（JST）',
-    '- 期限超過・未完了: startDate が過去で、ステータスが完了扱いでないもの',
+    '- `## 📝 議事録` を最後に追加し、全リストに含まれる担当者名ごとに見出し（###）とメモ欄を用意する',
     '',
     '入力JSON:',
     JSON.stringify(input),
@@ -236,71 +253,23 @@ function generateMarkdownDocument(
   timeStr: string,
   fileNameDateStr: string
 ): Document {
-  const { projectKey, projectName, issues } = project;
+  const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
 
-  // 課題を分類
-  const today = new Date().toISOString().split('T')[0];
-  const sevenDaysLater = new Date();
-  sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-  const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
-
-  const todayIssues = issues.filter(issue => {
-    const todayStr = today;
-    
-    // 開始日と期限日の両方が設定されている場合
-    if (issue.startDate && issue.dueDate) {
-      const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
-      const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
-      // 開始日が未来の場合は除外
-      if (startDateStr > todayStr) return false;
-      return startDateStr <= todayStr && dueDateStr >= todayStr;
-    }
-    
-    // 開始日のみ設定されている場合
-    if (issue.startDate && !issue.dueDate) {
-      const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
-      // 開始日が未来の場合は除外
-      if (startDateStr > todayStr) return false;
-      return startDateStr <= todayStr;
-    }
-    
-    // 期限日のみ設定されている場合
-    if (!issue.startDate && issue.dueDate) {
-      const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
-      // 期限日が今日以降なら対応予定
-      // ただし、開始日が未設定の場合は、期限日が今日以降なら対応予定として扱う
-      return dueDateStr >= todayStr;
-    }
-    
-    // 開始日も期限日も設定されていない場合は除外
-    return false;
-  });
-  const incompleteIssues = issues.filter(issue => {
-    if (!issue.startDate) return false;
-    const startDate = new Date(issue.startDate);
-    const todayDate = new Date(today);
-    return startDate < todayDate && issue.status.name !== '完了';
-  });
-  const dueTodayIssues = issues.filter(issue => {
-    if (!issue.dueDate) return false;
-    const dueDate = new Date(issue.dueDate);
-    const todayDate = new Date(today);
-    return dueDate.toISOString().split('T')[0] === todayDate.toISOString().split('T')[0];
-  });
+  // 課題数を計算（担当者グループから合計）
+  const countIssues = (groups: IssuesByAssignee[]) =>
+    groups.reduce((sum, g) => sum + g.issues.length, 0);
 
   // 統計情報
   const summary = {
-    today: todayIssues.length,
-    incomplete: incompleteIssues.length,
-    dueToday: dueTodayIssues.length,
+    today: countIssues(todayIssues),
+    incomplete: countIssues(incompleteIssues),
+    dueToday: countIssues(dueTodayIssues),
   };
 
-  // 担当者リストを取得（課題から抽出）
+  // 担当者リストを取得（全リストから抽出、重複を除去）
   const assignees = new Set<string>();
-  [...todayIssues, ...incompleteIssues, ...dueTodayIssues].forEach(issue => {
-    if (issue.assignee) {
-      assignees.add(issue.assignee.name);
-    }
+  [...todayIssues, ...incompleteIssues, ...dueTodayIssues].forEach(group => {
+    assignees.add(group.assigneeName);
   });
   const assigneeList = Array.from(assignees).sort();
 
@@ -317,21 +286,21 @@ function generateMarkdownDocument(
   markdown += `| 今日締め切り | ${summary.dueToday}件 |\n\n`;
 
   // 期限超過・未完了の課題
-  if (incompleteIssues.length > 0) {
+  if (countIssues(incompleteIssues) > 0) {
     markdown += `## ⚠️ 期限超過・未完了の課題\n\n`;
-    markdown += generateIssuesByAssignee(incompleteIssues);
+    markdown += generateIssuesFromAssigneeGroups(incompleteIssues);
   }
 
   // 本日対応予定の課題
-  if (todayIssues.length > 0) {
+  if (countIssues(todayIssues) > 0) {
     markdown += `## 📅 本日対応予定の課題\n\n`;
-    markdown += generateIssuesByAssignee(todayIssues);
+    markdown += generateIssuesFromAssigneeGroups(todayIssues);
   }
 
   // 今日締め切りの課題
-  if (dueTodayIssues.length > 0) {
+  if (countIssues(dueTodayIssues) > 0) {
     markdown += `## 🔔 今日締め切りの課題\n\n`;
-    markdown += generateIssuesByAssignee(dueTodayIssues);
+    markdown += generateIssuesFromAssigneeGroups(dueTodayIssues);
   }
 
   // 議事録セクション
@@ -352,31 +321,18 @@ function generateMarkdownDocument(
   };
 }
 
-function generateIssuesByAssignee(issues: Issue[]): string {
-  // 担当者別にグループ化
-  const issuesByAssignee = new Map<string, Issue[]>();
-
-  issues.forEach(issue => {
-    const assigneeName = issue.assignee?.name || '未割り当て';
-    if (!issuesByAssignee.has(assigneeName)) {
-      issuesByAssignee.set(assigneeName, []);
-    }
-    issuesByAssignee.get(assigneeName)!.push(issue);
-  });
-
+function generateIssuesFromAssigneeGroups(groups: IssuesByAssignee[]): string {
   let markdown = '';
 
-  // 担当者名でソート
-  const sortedAssignees = Array.from(issuesByAssignee.keys()).sort();
-
-  for (const assigneeName of sortedAssignees) {
-    const assigneeIssues = issuesByAssignee.get(assigneeName)!;
+  // 担当者グループは既にソート済み
+  for (const group of groups) {
+    const { assigneeName, issues } = group;
 
     markdown += `### ${assigneeName}\n\n`;
     markdown += `| 課題キー | 課題名 | ステータス | 開始日 | 期限日 | 優先度 | カテゴリ | URL |\n`;
     markdown += `|:---|:---|:---|:---|:---|:---|:---|:---|\n`;
 
-    for (const issue of assigneeIssues) {
+    for (const issue of issues) {
       const issueKey = issue.issueKey;
       const summary = escapeMarkdown(issue.summary);
       const status = issue.status.name;
@@ -392,7 +348,7 @@ function generateIssuesByAssignee(issues: Issue[]): string {
     }
 
     // 課題の説明を追加
-    for (const issue of assigneeIssues) {
+    for (const issue of issues) {
       if (issue.description && issue.description.trim()) {
         markdown += `\n**${issue.issueKey}** の説明:\n`;
         markdown += `${escapeMarkdown(issue.description)}\n\n`;

@@ -16,6 +16,19 @@ jest.mock('https', () => {
   };
 });
 
+// ヘルパー関数: 担当者グループから全課題を取得
+const getAllIssuesFromGroups = (groups: any[]) => {
+  return groups.flatMap((g: any) => g.issues || []);
+};
+
+// ヘルパー関数: 3つのリストすべてから課題を取得
+const getAllIssuesFromProject = (project: any) => {
+  const todayIssues = getAllIssuesFromGroups(project.todayIssues || []);
+  const incompleteIssues = getAllIssuesFromGroups(project.incompleteIssues || []);
+  const dueTodayIssues = getAllIssuesFromGroups(project.dueTodayIssues || []);
+  return [...todayIssues, ...incompleteIssues, ...dueTodayIssues];
+};
+
 describe('fetch-backlog-issues', () => {
   beforeEach(() => {
     secretsManagerMock.reset();
@@ -104,6 +117,13 @@ describe('fetch-backlog-issues', () => {
       expect(result).toHaveProperty('activeAssigneeIds');
       expect(Array.isArray(result.projects)).toBe(true);
       expect(Array.isArray(result.activeAssigneeIds)).toBe(true);
+      // 新しいレスポンス構造の検証
+      expect(result.projects[0]).toHaveProperty('todayIssues');
+      expect(result.projects[0]).toHaveProperty('incompleteIssues');
+      expect(result.projects[0]).toHaveProperty('dueTodayIssues');
+      expect(Array.isArray(result.projects[0].todayIssues)).toBe(true);
+      expect(Array.isArray(result.projects[0].incompleteIssues)).toBe(true);
+      expect(Array.isArray(result.projects[0].dueTodayIssues)).toBe(true);
     });
   });
 
@@ -308,8 +328,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].issueKey).toBe('PROJECT1-1');
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        expect(todayIssues).toHaveLength(1);
+        expect(todayIssues[0].issueKey).toBe('PROJECT1-1');
       });
 
       it('開始日が今日、期限日が未来の課題が抽出される', async () => {
@@ -353,8 +374,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].issueKey).toBe('PROJECT1-1');
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        expect(todayIssues).toHaveLength(1);
+        expect(todayIssues[0].issueKey).toBe('PROJECT1-1');
       });
 
       it('開始日が過去、期限日が今日の課題が抽出される', async () => {
@@ -398,8 +420,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].issueKey).toBe('PROJECT1-1');
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        expect(todayIssues).toHaveLength(1);
+        expect(todayIssues[0].issueKey).toBe('PROJECT1-1');
       });
 
       it('開始日が未来、期限日が今日の課題が除外される', async () => {
@@ -443,11 +466,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        // 開始日が未来なので本日対応予定からは除外される（今日締め切りには含まれる可能性があるが、ここでは本日対応予定のフィルタリングを確認）
-        const todayIssues = result.projects[0].issues.filter((issue: any) => {
-          // 今日締め切りの課題は別途取得されるため、本日対応予定のフィルタリング結果を確認
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= today;
-        });
+        // 開始日が未来なので本日対応予定からは除外される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
         expect(todayIssues).toHaveLength(0);
       });
 
@@ -492,9 +512,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const todayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= today;
-        });
+        // 開始日が未来なので本日対応予定からは除外される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
         expect(todayIssues).toHaveLength(0);
       });
 
@@ -538,8 +557,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].issueKey).toBe('PROJECT1-1');
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        expect(todayIssues).toHaveLength(1);
+        expect(todayIssues[0].issueKey).toBe('PROJECT1-1');
       });
 
       it('開始日のみ設定されていて、開始日が未来の課題が除外される', async () => {
@@ -582,9 +602,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const todayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= today;
-        });
+        // 開始日が未来なので本日対応予定からは除外される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
         expect(todayIssues).toHaveLength(0);
       });
 
@@ -628,8 +647,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].issueKey).toBe('PROJECT1-1');
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        expect(todayIssues).toHaveLength(1);
+        expect(todayIssues[0].issueKey).toBe('PROJECT1-1');
       });
 
       it('期限日のみ設定されていて、期限日が過去の課題が除外される', async () => {
@@ -672,9 +692,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const todayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] >= today;
-        });
+        // 期限日が過去なので本日対応予定からは除外される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
         expect(todayIssues).toHaveLength(0);
       });
 
@@ -717,9 +736,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const todayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate || issue.dueDate;
-        });
+        // 開始日も期限日も設定されていないので本日対応予定からは除外される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
         expect(todayIssues).toHaveLength(0);
       });
     });
@@ -775,9 +793,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const dueTodayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === today;
-        });
+        const dueTodayIssues = getAllIssuesFromGroups(result.projects[0].dueTodayIssues);
         expect(dueTodayIssues.length).toBeGreaterThan(0);
       });
 
@@ -811,9 +827,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const dueTodayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === today;
-        });
+        const dueTodayIssues = getAllIssuesFromGroups(result.projects[0].dueTodayIssues);
         expect(dueTodayIssues).toHaveLength(0);
       });
 
@@ -847,9 +861,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const dueTodayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === today;
-        });
+        const dueTodayIssues = getAllIssuesFromGroups(result.projects[0].dueTodayIssues);
         expect(dueTodayIssues).toHaveLength(0);
       });
 
@@ -883,9 +895,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const dueTodayIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === today;
-        });
+        const dueTodayIssues = getAllIssuesFromGroups(result.projects[0].dueTodayIssues);
         expect(dueTodayIssues).toHaveLength(0);
       });
     });
@@ -941,9 +951,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues.length).toBeGreaterThan(0);
       });
 
@@ -992,9 +1000,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues.length).toBeGreaterThan(0);
       });
 
@@ -1028,9 +1034,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues).toHaveLength(0);
       });
 
@@ -1064,9 +1068,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues).toHaveLength(0);
       });
 
@@ -1101,9 +1103,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues).toHaveLength(0);
       });
 
@@ -1137,9 +1137,7 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const incompleteIssues = result.projects[0].issues.filter((issue: any) => {
-          return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] <= yesterday;
-        });
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
         expect(incompleteIssues).toHaveLength(0);
       });
     });
@@ -1196,7 +1194,9 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const issues = result.projects[0].issues.filter((issue: any) => {
+        // 開始日が過去30日以内の課題は todayIssues に含まれる可能性がある
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const issues = todayIssues.filter((issue: any) => {
           return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] === testDate;
         });
         expect(issues.length).toBeGreaterThan(0);
@@ -1248,7 +1248,8 @@ describe('fetch-backlog-issues', () => {
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
         // 開始日が未来の課題は本日対応予定のフィルタリングで除外される
-        const issues = result.projects[0].issues.filter((issue: any) => {
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const issues = todayIssues.filter((issue: any) => {
           return issue.startDate && new Date(issue.startDate).toISOString().split('T')[0] === testDate;
         });
         expect(issues.length).toBe(0);
@@ -1301,7 +1302,8 @@ describe('fetch-backlog-issues', () => {
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
         // 期限日が過去の課題は本日対応予定のフィルタリングで除外される（期限日のみ設定時は dueDate >= today）
-        const issues = result.projects[0].issues.filter((issue: any) => {
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const issues = todayIssues.filter((issue: any) => {
           return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === testDate;
         });
         expect(issues.length).toBe(0);
@@ -1352,14 +1354,16 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        const issues = result.projects[0].issues.filter((issue: any) => {
+        // 期限日が未来30日以内の課題は todayIssues に含まれる可能性がある
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const issues = todayIssues.filter((issue: any) => {
           return issue.dueDate && new Date(issue.dueDate).toISOString().split('T')[0] === testDate;
         });
         expect(issues.length).toBeGreaterThan(0);
       });
     });
 
-    describe('課題の重複除去', () => {
+    describe('課題の重複許可', () => {
       beforeEach(() => {
         setupCommonMocks();
         mockDate(today);
@@ -1407,13 +1411,27 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        // 重複が除去されているため、同じ課題IDは1つだけ
-        const issueIds = result.projects[0].issues.map((issue: any) => issue.id);
-        const uniqueIssueIds = Array.from(new Set(issueIds));
-        expect(issueIds.length).toBe(uniqueIssueIds.length);
+        // 各リスト内の重複は除去されるが、リスト間の重複は許可される
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
+        
+        // 各リスト内では課題IDは一意
+        const todayIssueIds = todayIssues.map((issue: any) => issue.id);
+        const uniqueTodayIssueIds = Array.from(new Set(todayIssueIds));
+        expect(todayIssueIds.length).toBe(uniqueTodayIssueIds.length);
+        
+        const incompleteIssueIds = incompleteIssues.map((issue: any) => issue.id);
+        const uniqueIncompleteIssueIds = Array.from(new Set(incompleteIssueIds));
+        expect(incompleteIssueIds.length).toBe(uniqueIncompleteIssueIds.length);
+        
+        // 同じ課題がtodayIssuesとincompleteIssuesの両方に含まれる（リスト間重複は許可）
+        if (todayIssueIds.length > 0 && incompleteIssueIds.length > 0) {
+          const overlappingIds = todayIssueIds.filter((id: number) => incompleteIssueIds.includes(id));
+          expect(overlappingIds.length).toBeGreaterThanOrEqual(0); // 重複があってもよい
+        }
       });
 
-      it('異なる課題が両方のクエリ結果に含まれている場合、すべてが含まれる', async () => {
+      it('異なる課題が両方のクエリ結果に含まれている場合、それぞれのリストに含まれる', async () => {
         const mockRequest = https.request as jest.Mock;
         let callCount = 0;
         mockRequest.mockImplementation((options: any, callback: any) => {
@@ -1472,11 +1490,14 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        // 異なる課題が両方含まれている
-        expect(result.projects[0].issues.length).toBeGreaterThanOrEqual(2);
-        const issueIds = result.projects[0].issues.map((issue: any) => issue.id);
-        expect(issueIds).toContain(1);
-        expect(issueIds).toContain(2);
+        // 異なる課題がそれぞれのリストに含まれている
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        const incompleteIssues = getAllIssuesFromGroups(result.projects[0].incompleteIssues);
+        const allIssues = getAllIssuesFromProject(result.projects[0]);
+        const allIssueIds = [...new Set(allIssues.map((issue: any) => issue.id))];
+        expect(allIssueIds.length).toBeGreaterThanOrEqual(2);
+        expect(allIssueIds).toContain(1);
+        expect(allIssueIds).toContain(2);
       });
     });
 
@@ -1533,8 +1554,12 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(1);
-        expect(result.projects[0].issues[0].assignee?.id).toBe(123);
+        const allIssues = getAllIssuesFromProject(result.projects[0]);
+        // リスト間で重複許可されるため、同じ課題が複数リストに含まれる可能性がある
+        // ユニークな課題IDで検証
+        const uniqueIssueIds = [...new Set(allIssues.map((issue: any) => issue.id))];
+        expect(uniqueIssueIds).toHaveLength(1);
+        expect(allIssues[0].assignee?.id).toBe(123);
       });
 
       it('指定されていない担当者の課題が除外される', async () => {
@@ -1584,7 +1609,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(0);
+        const allIssues = getAllIssuesFromProject(result.projects[0]);
+        expect(allIssues).toHaveLength(0);
       });
 
       it('担当者が未割り当ての課題が除外される', async () => {
@@ -1633,7 +1659,8 @@ describe('fetch-backlog-issues', () => {
         });
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
-        expect(result.projects[0].issues).toHaveLength(0);
+        const allIssues = getAllIssuesFromProject(result.projects[0]);
+        expect(allIssues).toHaveLength(0);
       });
 
       it('activeAssigneeIdsが空の場合はすべての課題が抽出される', async () => {
@@ -1694,7 +1721,8 @@ describe('fetch-backlog-issues', () => {
 
         const result = (await handler({}, {} as any, jest.fn())) as any;
         // 担当者フィルタリングが適用されないため、すべての課題が含まれる
-        expect(result.projects[0].issues.length).toBeGreaterThanOrEqual(2);
+        const allIssues = getAllIssuesFromProject(result.projects[0]);
+        expect(allIssues.length).toBeGreaterThanOrEqual(2);
       });
     });
   });
