@@ -649,4 +649,75 @@ describe('sendEmail - HTML/PlainText統合', () => {
       }
     }
   });
+
+  describe('議事録セクションの除外', () => {
+    it('メール本文には議事録セクションが含まれない', async () => {
+      ssmMock.on(GetParameterCommand, {
+        Name: '/backlog-morning-meeting/email-from',
+      }).resolves({
+        Parameter: { Value: 'noreply@example.com' },
+      });
+
+      ssmMock.on(GetParameterCommand, {
+        Name: '/backlog-morning-meeting/email-recipients',
+      }).resolves({
+        Parameter: { Value: 'user@example.com' },
+      });
+
+      sesMock.on(SendRawEmailCommand).resolves({
+        MessageId: 'test-message-id',
+      });
+
+      const mockEvent = {
+        documents: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            content: `# 【朝会ドキュメント】2024/01/20 - Project 1
+
+生成時刻: 10:00
+
+## 📊 サマリー
+
+| 項目 | 件数 |
+|:---|:---:|
+| 本日対応予定 | 0件 |
+
+## 📝 議事録
+
+### Test User
+
+<!-- ここにTest Userの議事録を記入してください -->
+
+---`,
+          },
+        ],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.success).toBe(true);
+      const sendCommand = sesMock.calls()[0].args[0] as SendRawEmailCommand;
+      const rawMessage = sendCommand.input.RawMessage?.Data;
+      expect(rawMessage).toBeDefined();
+      if (rawMessage) {
+        const messageStr = Buffer.from(rawMessage).toString('utf-8');
+        // メール本文には議事録セクションが含まれない
+        expect(messageStr).not.toContain('## 📝 議事録');
+        expect(messageStr).not.toContain('Test User');
+        // 添付ファイルには議事録セクションが含まれる
+        expect(messageStr).toContain('morning-meeting-PROJECT1-2024-01-20.md');
+        // Base64エンコードされた添付ファイルに議事録が含まれることを確認
+        // Content-Transfer-Encoding: base64 の後のBase64データを抽出
+        const attachmentMatch = messageStr.match(/Content-Transfer-Encoding: base64[\s\S]*?\r\n\r\n([A-Za-z0-9+\/=\s\r\n]+?)(?=\r\n--|$)/);
+        if (attachmentMatch) {
+          const attachmentBase64 = attachmentMatch[1].replace(/[\s\r\n]/g, '');
+          const attachmentContent = Buffer.from(attachmentBase64, 'base64').toString('utf-8');
+          expect(attachmentContent).toContain('## 📝 議事録');
+          expect(attachmentContent).toContain('Test User');
+        }
+      }
+    });
+  });
 });

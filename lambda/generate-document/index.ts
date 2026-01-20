@@ -245,11 +245,29 @@ function generateMarkdownDocument(
   const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
 
   const todayIssues = issues.filter(issue => {
-    if (!issue.startDate || !issue.dueDate) return false;
-    const startDate = new Date(issue.startDate);
-    const dueDate = new Date(issue.dueDate);
-    const todayDate = new Date(today);
-    return startDate <= todayDate && dueDate >= todayDate;
+    const todayStr = today;
+    
+    // 開始日と期限日の両方が設定されている場合
+    if (issue.startDate && issue.dueDate) {
+      const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+      const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+      return startDateStr <= todayStr && dueDateStr >= todayStr;
+    }
+    
+    // 開始日のみ設定されている場合
+    if (issue.startDate && !issue.dueDate) {
+      const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+      return startDateStr <= todayStr;
+    }
+    
+    // 期限日のみ設定されている場合
+    if (!issue.startDate && issue.dueDate) {
+      const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+      return dueDateStr >= todayStr;
+    }
+    
+    // 開始日も期限日も設定されていない場合は除外
+    return false;
   });
   const incompleteIssues = issues.filter(issue => {
     if (!issue.startDate) return false;

@@ -240,6 +240,34 @@ describe('generate-document', () => {
                 url: 'https://example.com/view/PROJECT1-2',
                 project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
               },
+              {
+                id: 3,
+                issueKey: 'PROJECT1-3',
+                summary: '本日対応予定の課題（開始日のみ、今日以前）',
+                description: '',
+                status: { id: 1, name: '未対応' },
+                assignee: { id: 1, name: 'Test User' },
+                startDate: yesterday,
+                dueDate: undefined, // 期限日が未設定
+                priority: { id: 1, name: '中' },
+                category: [],
+                url: 'https://example.com/view/PROJECT1-3',
+                project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+              },
+              {
+                id: 4,
+                issueKey: 'PROJECT1-4',
+                summary: '本日対応予定の課題（期限日のみ、今日以降）',
+                description: '',
+                status: { id: 1, name: '未対応' },
+                assignee: { id: 1, name: 'Test User' },
+                startDate: undefined, // 開始日が未設定
+                dueDate: tomorrow,
+                priority: { id: 1, name: '中' },
+                category: [],
+                url: 'https://example.com/view/PROJECT1-4',
+                project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+              },
             ],
           },
         ],
@@ -249,6 +277,8 @@ describe('generate-document', () => {
       const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
 
       expect(result.documents[0].content).toContain('本日対応予定の課題（開始日が昨日、期限日が明日）');
+      expect(result.documents[0].content).toContain('本日対応予定の課題（開始日のみ、今日以前）');
+      expect(result.documents[0].content).toContain('本日対応予定の課題（期限日のみ、今日以降）');
       expect(result.documents[0].content).not.toContain('本日対応予定ではない課題（開始日が明日）');
     });
 

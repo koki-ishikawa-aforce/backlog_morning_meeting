@@ -85,13 +85,22 @@ function parseEmailList(value: string): string[] {
     .filter(v => v.length > 0);
 }
 
+// 議事録セクションを削除する関数
+function removeMinutesSection(markdown: string): string {
+  // ## 📝 議事録 から始まるセクションを削除
+  const minutesSectionRegex = /## 📝 議事録[\s\S]*$/;
+  return markdown.replace(minutesSectionRegex, '').trim();
+}
+
 async function sendEmail(
   document: Document,
   from: string,
   recipients: string[]
 ): Promise<void> {
-  const htmlContent = markdownToHtml(document.content);
-  const plainTextContent = markdownToPlainText(document.content);
+  // メール本文用のMarkdownから議事録セクションを削除
+  const emailContent = removeMinutesSection(document.content);
+  const htmlContent = markdownToHtml(emailContent);
+  const plainTextContent = markdownToPlainText(emailContent);
   const subject = `【朝会ドキュメント】${document.projectName} - ${document.fileName}`;
 
   const raw = buildRawMimeEmail({
@@ -101,7 +110,7 @@ async function sendEmail(
     textBody: plainTextContent,
     htmlBody: htmlContent,
     attachmentFileName: document.fileName,
-    attachmentContent: document.content,
+    attachmentContent: document.content, // 添付ファイルには議事録を含む完全なMarkdownを使用
   });
 
   const command = new SendRawEmailCommand({

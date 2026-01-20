@@ -174,15 +174,40 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     statusId: incompleteStatusIds,
                 }, credentials);
                 
-                // 両方の条件を満たす課題を抽出（startDate <= today && dueDate >= today）
-                const todayIssuesSet = new Set(issuesWithStartDateUntilToday.map(issue => issue.id));
-                const todayIssues = issuesWithDueDateSinceToday.filter(issue => {
-                    if (!todayIssuesSet.has(issue.id)) return false;
-                    if (!issue.startDate || !issue.dueDate) return false;
-                    const startDate = new Date(issue.startDate);
-                    const dueDate = new Date(issue.dueDate);
-                    const todayDate = new Date(today);
-                    return startDate <= todayDate && dueDate >= todayDate;
+                // 両方のクエリ結果をマージして重複を除去
+                const allPotentialTodayIssues = [...issuesWithStartDateUntilToday, ...issuesWithDueDateSinceToday];
+                const uniquePotentialTodayIssues = Array.from(
+                    new Map(allPotentialTodayIssues.map(issue => [issue.id, issue])).values()
+                );
+                
+                // 本日対応予定の課題を抽出
+                // 開始日と期限日の両方が設定されている場合: startDate <= today && dueDate >= today
+                // 開始日のみ設定されている場合: startDate <= today
+                // 期限日のみ設定されている場合: dueDate >= today
+                const todayIssues = uniquePotentialTodayIssues.filter(issue => {
+                    const todayStr = today;
+                    
+                    // 開始日と期限日の両方が設定されている場合
+                    if (issue.startDate && issue.dueDate) {
+                        const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+                        const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                        return startDateStr <= todayStr && dueDateStr >= todayStr;
+                    }
+                    
+                    // 開始日のみ設定されている場合
+                    if (issue.startDate && !issue.dueDate) {
+                        const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+                        return startDateStr <= todayStr;
+                    }
+                    
+                    // 期限日のみ設定されている場合
+                    if (!issue.startDate && issue.dueDate) {
+                        const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                        return dueDateStr >= todayStr;
+                    }
+                    
+                    // 開始日も期限日も設定されていない場合は除外
+                    return false;
                 });
 
                 // 過去のスケジュールで未完了の課題（開始日が過去、ステータスが未完了）
