@@ -86,7 +86,7 @@ aws configure
 
 プロンプトに従って入力:
 
-```
+```text
 AWS Access Key ID [None]: YOUR_ACCESS_KEY_ID
 AWS Secret Access Key [None]: YOUR_SECRET_ACCESS_KEY
 Default region name [None]: ap-northeast-1
@@ -186,6 +186,20 @@ aws secretsmanager update-secret `
   --secret-string '{\"url\":\"https://new-url...\"}' `
   --region ap-northeast-1
 ```
+
+### 4. OpenAI APIキーの登録（LLMでMarkdown生成する場合）
+
+`generate-document` LambdaがOpenAI APIを呼び出してMarkdown本文を生成します。
+
+```powershell
+aws secretsmanager create-secret `
+  --name "backlog-morning-meeting/openai-api-key" `
+  --description "OpenAI API key for morning meeting markdown generation" `
+  --secret-string '{\"apiKey\":\"YOUR_OPENAI_API_KEY\"}' `
+  --region ap-northeast-1
+```
+
+> `--secret-string` は `{\"apiKey\":\"...\"}` のJSON形式を推奨します（生文字列でも動くように実装しています）。
 
 ---
 
@@ -350,25 +364,27 @@ aws ssm get-parameter `
 
 ### エラー: AccessDeniedException
 
-```
+```text
 An error occurred (AccessDeniedException) when calling the CreateSecret operation
 ```
 
 **原因**: IAM権限が不足しています。
 
-**対処法**: 
+**対処法**:
+
 1. IAMユーザーに必要な権限を付与
 2. または管理者に権限追加を依頼
 
 ### エラー: ResourceExistsException
 
-```
+```text
 An error occurred (ResourceExistsException) when calling the CreateSecret operation
 ```
 
 **原因**: 同名のシークレットが既に存在します。
 
-**対処法**: 
+**対処法**:
+
 ```powershell
 # 更新する場合
 aws secretsmanager update-secret --secret-id "シークレット名" --secret-string "新しい値"
@@ -380,13 +396,14 @@ aws secretsmanager create-secret --name "シークレット名" --secret-string 
 
 ### エラー: ParameterAlreadyExists
 
-```
+```text
 An error occurred (ParameterAlreadyExists) when calling the PutParameter operation
 ```
 
 **原因**: 同名のパラメータが既に存在します。
 
-**対処法**: 
+**対処法**:
+
 ```powershell
 # --overwriteフラグを追加
 aws ssm put-parameter --name "パラメータ名" --value "値" --type "StringList" --overwrite
@@ -458,6 +475,7 @@ aws ssm put-parameter `
 | --------- | ---------------------------------------------- | ---- | ------------------------------------- |
 | Secret    | `backlog-morning-meeting/backlog-credentials`  | ✅    | Backlog APIキー、スペースID、ドメイン |
 | Secret    | `backlog-morning-meeting/teams-workflows-url`  | ✅    | Teams Workflows HTTPトリガーURL       |
+| Secret    | `backlog-morning-meeting/openai-api-key`       | ⬜    | OpenAI APIキー（LLM生成を使う場合）   |
 | Parameter | `/backlog-morning-meeting/project-keys`        | ✅    | 対象プロジェクトキー（カンマ区切り）  |
 | Parameter | `/backlog-morning-meeting/active-assignee-ids` | ⬜    | フィルタ対象の担当者ID                |
 | Parameter | `/backlog-morning-meeting/email-from`          | ✅    | メール送信元                          |
@@ -469,4 +487,3 @@ aws ssm put-parameter `
 ## 参考資料
 
 - [課題一覧の取得（Backlog API v2）](https://developer.nulab.com/ja/docs/backlog/api/2/get-issue-list/)
-

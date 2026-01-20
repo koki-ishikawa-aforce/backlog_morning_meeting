@@ -28,6 +28,13 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       'backlog-morning-meeting/teams-workflows-url'
     );
 
+    // Secrets Manager: OpenAI API Key（Markdown生成をLLMに任せる場合）
+    const openAiApiKeySecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'OpenAiApiKeySecret',
+      'backlog-morning-meeting/openai-api-key'
+    );
+
     // Parameter Store（パラメータ名は固定。Lambdaが実行時にSSMから値を取得する）
     // NOTE: CloudFormationがSSM型検証を行い StringList/String の不整合でデプロイが止まることがあるため、
     // ここではssm.*の型付き参照を避け、文字列 + IAM権限付与に寄せる。
@@ -76,12 +83,19 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       handler: 'handler',
       timeout: cdk.Duration.minutes(2),
       memorySize: 512,
+      environment: {
+        OPENAI_API_KEY_SECRET_NAME: openAiApiKeySecret.secretName,
+        // 必要ならSSM化も可能。まずは固定デフォルトで運用。
+        OPENAI_MODEL: 'gpt-4o-mini',
+      },
       bundling: {
         target: 'node20',
         sourceMap: true,
         minify: true,
       },
     });
+
+    openAiApiKeySecret.grantRead(generateDocumentFn);
 
     // Lambda関数: notify-teams（TypeScriptをデプロイ時にバンドル）
     const notifyTeamsFn = new NodejsFunction(this, 'NotifyTeams', {

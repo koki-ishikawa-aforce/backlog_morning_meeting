@@ -4,7 +4,7 @@ EventBridgeで毎日9:30にスケジュール実行し、Step Functions経由で
 
 ## アーキテクチャ
 
-```
+```text
 EventBridge (9:30 JST)
   ↓
 Step Functions
@@ -29,6 +29,7 @@ Lambda: generate-document (Markdown生成)
   - 担当者別にグループ化して表示
   - 表形式で課題情報を表示
   - 議事録セクション（担当者別）
+  - OpenAI（任意）: LLMにMarkdown生成を委譲可能（Secrets ManagerにAPIキーを登録）
 
 - **通知**
   - Teams Workflows経由でSharePointに保存
@@ -73,6 +74,14 @@ aws secretsmanager create-secret \
 aws secretsmanager create-secret \
   --name backlog-morning-meeting/teams-workflows-url \
   --secret-string '{"url":"YOUR_TEAMS_WORKFLOWS_HTTP_TRIGGER_URL"}'
+```
+
+#### OpenAI APIキー（任意 / LLMでMarkdown生成する場合）
+
+```bash
+aws secretsmanager create-secret \
+  --name backlog-morning-meeting/openai-api-key \
+  --secret-string '{"apiKey":"YOUR_OPENAI_API_KEY"}'
 ```
 
 ### 3. Parameter Storeの設定（AWS側で設定値を一元管理）
@@ -227,7 +236,7 @@ Teams Workflowsで以下のフローを作成してください：
 
 ## 注意事項
 
-- Backlog MCPサーバーが既に設定されていることを前提とします
+- Backlog MCPは利用しません（Backlog REST APIを直接呼び出します）
 - SESのサンドボックス環境の場合は、送信先メールアドレスの検証が必要です
 - EventBridgeルールのタイムゾーンはUTC基準のため、JST 9:30 = UTC 0:30として設定しています
 - Teams Workflows HTTPトリガーURLはSecrets Managerで管理することを推奨します
@@ -235,4 +244,3 @@ Teams Workflowsで以下のフローを作成してください：
 ## ライセンス
 
 MIT
-

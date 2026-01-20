@@ -1,4 +1,7 @@
 import type { Handler } from 'aws-lambda';
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+
+const secretsManager = new SecretsManagerClient({});
 
 interface Issue {
   id: number;
@@ -65,9 +68,16 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
     const timeStr = formatTime(jstNow); // HH:mm形式
     const fileNameDateStr = jstNow.toISOString().split('T')[0]; // YYYY-MM-DD形式（ファイル名用）
 
+    // OpenAIを使う場合（失敗時は既存ロジックにフォールバック）
+    const openAiSecretName = process.env.OPENAI_API_KEY_SECRET_NAME || '';
+    const openAiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const openAiApiKey = openAiSecretName ? await getOpenAiApiKey(openAiSecretName) : '';
+
     // プロジェクトごとにドキュメントを生成
     for (const project of projects) {
-      const document = generateMarkdownDocument(project, dateStr, timeStr, fileNameDateStr);
+      const document = openAiApiKey
+        ? await generateMarkdownDocumentWithOpenAi(project, dateStr, timeStr, fileNameDateStr, openAiApiKey, openAiModel)
+        : generateMarkdownDocument(project, dateStr, timeStr, fileNameDateStr);
       documents.push(document);
     }
 
@@ -77,6 +87,148 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
     throw error;
   }
 };
+
+async function getOpenAiApiKey(secretName: string): Promise<string> {
+  try {
+    const res = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretName }));
+    const secretString = (res.SecretString || '').trim();
+    if (!secretString) return '';
+
+    // JSON: {"apiKey":"..."} / {"OPENAI_API_KEY":"..."}  or  raw: "sk-..."
+    try {
+      const parsed = JSON.parse(secretString) as any;
+      return (parsed?.apiKey || parsed?.OPENAI_API_KEY || '').trim();
+    } catch {
+      return secretString;
+    }
+  } catch (e) {
+    console.warn(`OpenAI APIキー取得に失敗（secret: ${secretName}）:`, e);
+    return '';
+  }
+}
+
+async function generateMarkdownDocumentWithOpenAi(
+  project: ProjectData,
+  dateStr: string,
+  timeStr: string,
+  fileNameDateStr: string,
+  apiKey: string,
+  model: string
+): Promise<Document> {
+  const { projectKey, projectName, issues } = project;
+  const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
+
+  const input = {
+    generatedAtJst: { date: dateStr, time: timeStr },
+    project: { projectKey, projectName },
+    issues: issues.map(i => ({
+      issueKey: i.issueKey,
+      summary: i.summary,
+      description: i.description,
+      status: i.status?.name,
+      assignee: i.assignee?.name || '未割り当て',
+      dueDate: i.dueDate || null,
+      startDate: i.startDate || null,
+      priority: i.priority?.name,
+      categories: i.category?.map(c => c.name) || [],
+      url: i.url,
+    })),
+  };
+
+  const system = [
+    'あなたはプロジェクトの朝会ドキュメントをMarkdownで生成するアシスタントです。',
+    '必ずMarkdownのみを出力し、前後に説明文を付けないでください。',
+    '日付は必ず YYYY/MM/DD 形式で表示してください。',
+    '課題が0件のセクションは出力しないでください。',
+    'エラーがあれば「## ❌ エラー」セクションで明示してください。',
+  ].join('\n');
+
+  const user = [
+    '次のJSON入力から、朝会用Markdownドキュメントを生成してください。',
+    '',
+    '【出力要件】',
+    '- 先頭に: `# 【朝会ドキュメント】YYYY/MM/DD - {プロジェクト名}`',
+    '- `生成時刻: HH:mm` を出力',
+    '- セクションは以下（該当があるものだけ出す）:',
+    '  - `## 📊 サマリー`（件数集計の表）',
+    '  - `## ⚠️ 期限超過・未完了の課題`',
+    '  - `## 📅 本日対応予定の課題`',
+    '  - `## 🔔 期限が近い課題（7日以内）`',
+    '- 各セクション内は担当者でグルーピングし、担当者ごとに表形式で出力',
+    '- 表の列: 課題キー / 課題名 / ステータス / 期限日 / 開始日 / 優先度 / カテゴリ / URL',
+    '- URL列は `[リンク](URL)` 形式',
+    '- `## 📝 議事録` を最後に追加し、担当者名ごとに見出し（###）とメモ欄を用意する',
+    '',
+    '【分類ルール】',
+    '- 本日対応予定: startDate が今日（JST）',
+    '- 期限間近: dueDate が今日〜7日以内（JST）',
+    '- 期限超過・未完了: startDate が過去で、ステータスが完了扱いでないもの',
+    '',
+    '入力JSON:',
+    JSON.stringify(input),
+  ].join('\n');
+
+  try {
+    const markdown = await callOpenAiChatCompletion({
+      apiKey,
+      model,
+      system,
+      user,
+    });
+
+    return {
+      projectKey,
+      projectName,
+      fileName,
+      content: sanitizeMarkdown(markdown),
+    };
+  } catch (e) {
+    console.error('OpenAI生成に失敗。フォールバックで生成します:', e);
+    return generateMarkdownDocument(project, dateStr, timeStr, fileNameDateStr);
+  }
+}
+
+async function callOpenAiChatCompletion(params: {
+  apiKey: string;
+  model: string;
+  system: string;
+  user: string;
+}): Promise<string> {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${params.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: params.model,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: params.system },
+        { role: 'user', content: params.user },
+      ],
+    }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`OpenAI API error: HTTP ${res.status} ${text}`);
+  }
+
+  const json = JSON.parse(text) as any;
+  const content = json?.choices?.[0]?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new Error('OpenAI API returned empty content');
+  }
+  return content;
+}
+
+function sanitizeMarkdown(markdown: string): string {
+  // 前後の余計な空白やコードフェンスを軽く除去
+  let out = (markdown || '').trim();
+  out = out.replace(/^```(?:markdown)?\s*/i, '').replace(/```$/i, '').trim();
+  return out + '\n';
+}
 
 function generateMarkdownDocument(
   project: ProjectData,
@@ -174,7 +326,7 @@ function generateMarkdownDocument(
 function generateIssuesByAssignee(issues: Issue[]): string {
   // 担当者別にグループ化
   const issuesByAssignee = new Map<string, Issue[]>();
-  
+
   issues.forEach(issue => {
     const assigneeName = issue.assignee?.name || '未割り当て';
     if (!issuesByAssignee.has(assigneeName)) {
@@ -184,17 +336,17 @@ function generateIssuesByAssignee(issues: Issue[]): string {
   });
 
   let markdown = '';
-  
+
   // 担当者名でソート
   const sortedAssignees = Array.from(issuesByAssignee.keys()).sort();
-  
+
   for (const assigneeName of sortedAssignees) {
     const assigneeIssues = issuesByAssignee.get(assigneeName)!;
-    
+
     markdown += `### ${assigneeName}\n\n`;
     markdown += `| 課題キー | 課題名 | ステータス | 期限日 | 開始日 | 優先度 | カテゴリ | URL |\n`;
     markdown += `|:---|:---|:---|:---|:---|:---|:---|:---|\n`;
-    
+
     for (const issue of assigneeIssues) {
       const issueKey = issue.issueKey;
       const summary = escapeMarkdown(issue.summary);
@@ -206,10 +358,10 @@ function generateIssuesByAssignee(issues: Issue[]): string {
         ? issue.category.map(c => c.name).join(', ')
         : '-';
       const url = issue.url;
-      
+
       markdown += `| ${issueKey} | ${summary} | ${status} | ${dueDate} | ${startDate} | ${priority} | ${category} | [リンク](${url}) |\n`;
     }
-    
+
     // 課題の説明を追加
     for (const issue of assigneeIssues) {
       if (issue.description && issue.description.trim()) {
@@ -217,7 +369,7 @@ function generateIssuesByAssignee(issues: Issue[]): string {
         markdown += `${escapeMarkdown(issue.description)}\n\n`;
       }
     }
-    
+
     markdown += `---\n\n`;
   }
 
