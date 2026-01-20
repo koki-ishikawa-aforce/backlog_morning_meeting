@@ -126,6 +126,10 @@ async function generateMarkdownDocumentWithOpenAi(
   const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
   const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
 
+  // 件数を事前計算（LLMに数えさせず、この値をそのまま使用させる）
+  const countIssues = (groups: IssuesByAssignee[]) =>
+    groups.reduce((sum, g) => sum + g.issues.length, 0);
+
   // 担当者グループをシンプルな形式に変換（トークン削減のためdescriptionは除外）
   const convertToSimpleFormat = (groups: IssuesByAssignee[]) =>
     groups.map(g => ({
@@ -145,6 +149,12 @@ async function generateMarkdownDocumentWithOpenAi(
   const input = {
     generatedAtJst: { date: dateStr, time: timeStr },
     project: { projectKey, projectName },
+    // 事前計算した件数（サマリー表でこの値をそのまま使用する）
+    summary: {
+      todayCount: countIssues(todayIssues),
+      incompleteCount: countIssues(incompleteIssues),
+      dueTodayCount: countIssues(dueTodayIssues),
+    },
     todayIssues: convertToSimpleFormat(todayIssues),
     incompleteIssues: convertToSimpleFormat(incompleteIssues),
     dueTodayIssues: convertToSimpleFormat(dueTodayIssues),
@@ -162,6 +172,10 @@ async function generateMarkdownDocumentWithOpenAi(
     '次のJSON入力から、朝会用Markdownドキュメントを生成してください。',
     '',
     '【入力データ構造】',
+    '- summary: 各リストの件数（重要: この値をサマリー表にそのまま使用すること。自分で数えないでください）',
+    '  - todayCount: 本日対応予定の件数',
+    '  - incompleteCount: 期限超過・未完了の件数',
+    '  - dueTodayCount: 今日締め切りの件数',
     '- todayIssues: 本日対応予定の課題（担当者別にグループ化済み）',
     '- incompleteIssues: 期限超過・未完了の課題（担当者別にグループ化済み）',
     '- dueTodayIssues: 今日締め切りの課題（担当者別にグループ化済み）',
@@ -171,7 +185,7 @@ async function generateMarkdownDocumentWithOpenAi(
     '- 先頭に: `# 【朝会ドキュメント】YYYY/MM/DD - {プロジェクト名}`',
     '- `生成時刻: HH:mm` を出力',
     '- セクションは以下（該当があるものだけ出す）:',
-    '  - `## 📊 サマリー`（各リストの課題件数集計の表）',
+    '  - `## 📊 サマリー`（summaryの値をそのまま使用して表を作成。件数は自分で数えず、summary.todayCount等の値を使うこと）',
     '  - `## ⚠️ 期限超過・未完了の課題`（incompleteIssuesを出力）',
     '  - `## 📅 本日対応予定の課題`（todayIssuesを出力）',
     '  - `## 🔔 今日締め切りの課題`（dueTodayIssuesを出力）',
