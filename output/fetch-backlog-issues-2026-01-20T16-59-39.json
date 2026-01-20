@@ -1,0 +1,1408 @@
+{
+  "projects": [
+    {
+      "projectKey": "CRAFT",
+      "projectName": "クラフト",
+      "todayIssues": [
+        {
+          "assigneeName": "室井　梨沙",
+          "assigneeId": 2027570,
+          "issues": [
+            {
+              "id": 135013088,
+              "issueKey": "CRAFT-84",
+              "summary": "SSO 時の LinkKey 採番ロジック変更",
+              "description": "## 概要\nSSO 時に毎回 LinkKey を採番するのではなく、申込に紐づくように LinkKey を渡す\n新規と発券・変更・取消のそれぞれで修正する\n[新規申込SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQAfo5kWRnzZQKF8R3cg7ZdOARLL02GvCbAkDjp7dp5LlyA?e=fhqIaJ)\n[発券・変更・取消SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQA4pMblKusnQ60aOk5jdwz3AR7ILgV55B9F1VkJpUSXYSw?e=Q3ooZC)\n## 作業内容\n* [ ] 新規申込時 SSO 機能のソース修正\n* [ ] 新規申込時 SSO 機能の単体テスト\n* [ ] 変更時 SSO 機能のソース修正\n* [ ] 予約確認画面からの新規 SSO 機能のソース修正\n* [ ] 変更時 SSO 予約確認新規 SSO の単体テスト\n\n## 成果物\nソースコード\nテスト結果\n\n## 完了条件\nソース・テスト結果について、レビュー指摘事項対応済\nソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 2027570,
+                "userId": null,
+                "name": "室井　梨沙",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.muroi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY",
+                  "name": "室井　梨沙",
+                  "uniqueId": "rmuroi-uoT",
+                  "iconUrl": "https://apps.nulab.com/account/EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY/photo/large?t=1751952121"
+                },
+                "keyword": "室井　梨沙 MUROI RISA",
+                "lastLoginTime": "2026-01-19T08:45:40Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-84",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "上垣内　恒",
+          "assigneeId": 2209653,
+          "issues": [
+            {
+              "id": 135641598,
+              "issueKey": "CRAFT-106",
+              "summary": "SFJの試験項目追加",
+              "description": "## 概要\nSFJの試験項目を追加する必要がある。\n\n## 背景\n処理で怪しい挙動があったため、影響確認が必要。\nSFJの修正の影響がある可能性。\n\n## 作業内容\n* [ ] 試験項目の追加\n* [x] 影響確認の実施\n\n## 成果物\n- 試験項目リスト\n- 影響確認結果\n\n## 完了条件\n- 試験項目の追加が完了している\n- 影響確認が完了している",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": null,
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-106",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135091675,
+              "issueKey": "CRAFT-100",
+              "summary": "結合テスト仕様書の作成",
+              "description": "## 概要\nBCD_F1に関する結合テスト仕様書を作成する。\n\n## 作業内容\n* [x] 結合テスト仕様書作成\n* [ ] レビュー対応\n\n## 成果物\n- 結合テスト仕様書\n\n## 完了条件\n- 結合テスト仕様書のレビュー指摘事項対応済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-100",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135079766,
+              "issueKey": "CRAFT-91",
+              "summary": "AIRDO テスト環境の確認",
+              "description": "## 発生の背景\nAIRDO テスト環境の資料を共有いただいたが、テスト方法等説明いただく必要がある\n\n## 影響範囲\n[結合テスト実施](https://a-force.backlog.com/view/CRAFT-89)\n\n## 決定者\n上垣内さん\n\n## 決定事項\n",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-23T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [],
+              "url": "https://a-force.backlog.com/view/CRAFT-91",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135016177,
+              "issueKey": "CRAFT-88",
+              "summary": "結合テスト準備",
+              "description": "## 概要\n結合テスト仕様書の修正\nテスト環境の使用方法確認や疎通確認\n[作成済のテスト仕様書](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQB41eEVYeRvTqv5j4CY6PTuASK7InMJTDgse-u5lUTRPcA?e=GSnO3I)\n[AirDo テスト環境ログイン情報](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQAEGxz_acNBS6h8FmeEB_EFAfTUTfIKZSEmsnq36EYd1f0?e=BcszR8)\n## 作業内容\n実施する作業を具体的に記載してください。\n* [x] 結合テスト仕様書修正\n* [x] テスト環境への疎通確認（SSO、 予約取得、実績取得）\n\n## 成果物\n結合テスト仕様書\n\n## 完了条件\n- 結合テスト仕様書のレビュー指摘事項対応済\n- テスト環境疎通確認済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-23T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-88",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "石川　皓基",
+          "assigneeId": 1531256,
+          "issues": [
+            {
+              "id": 135091659,
+              "issueKey": "CRAFT-98",
+              "summary": "入金消込画面のZEUS決済処理（製造）",
+              "description": "## 概要\n入金消込画面において、得意先マスタの一括請求書に対するZEUS決済単位の設定情報を元に設定された方式でZEUS決済を追加するようにする製造を行う。\n\n## 作業内容\n* [ ] 製造\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 製造のレビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1531256,
+                "userId": "*2fmgS5XCt8",
+                "name": "石川　皓基",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "k.ishikawa@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2",
+                  "name": "石川　皓基",
+                  "uniqueId": "koki-ishikawa",
+                  "iconUrl": "https://apps.nulab.com/account/zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2/photo/large?t=1719796959"
+                },
+                "keyword": "石川　皓基 ISHIKAWA HIKARUMOTOKIMOTOI",
+                "lastLoginTime": "2026-01-20T14:46:52Z"
+              },
+              "dueDate": "2026-01-22T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-98",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "余澤　仁",
+          "assigneeId": 1986258,
+          "issues": [
+            {
+              "id": 135091625,
+              "issueKey": "CRAFT-96",
+              "summary": "入金消込画面の入金額制御と入金情報の集計処理（製造）",
+              "description": "## 概要\n入金消込画面において、得意先マスタで設定したZEUS決済単位ごとに適切に集計できるようにする製造を行う。また、入金方法をカードに設定した場合には、入金額を非活性にする制御の製造を行う。\n\n## 作業内容\n* [ ] 製造\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 製造のレビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986258,
+                "userId": null,
+                "name": "余澤　仁",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "t.yo@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9",
+                  "name": "余澤　仁",
+                  "uniqueId": "tyo-YDG",
+                  "iconUrl": "https://apps.nulab.com/account/uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9/photo/large?t=1749603178"
+                },
+                "keyword": "余澤　仁 YOSAWA HITOSHIZINMASASHISHINOBU",
+                "lastLoginTime": "2026-01-18T06:44:34Z"
+              },
+              "dueDate": "2026-01-22T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-96",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "髙橋嶺斗",
+          "assigneeId": 1986262,
+          "issues": [
+            {
+              "id": 135015300,
+              "issueKey": "CRAFT-86",
+              "summary": "カルテ作成バッチの修正",
+              "description": "## 概要\n- 仕入発券日には搭乗日の値を登録する\n- Able 予約の区別の処理が実装済だと思うので削除する\n[カルテ作成バッチ](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQBJr6EYC7kuSImIjXjYqVPiAdQzGKa5M0W1gTXOmqV_LPY?e=vR90LA)\n## 作業内容\n実施する作業を具体的に記載してください。\n* [ ] ソース修正\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- ソース・テスト結果について、レビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 1,
+                "projectId": 470542,
+                "name": "未対応",
+                "color": "#ed8077",
+                "displayOrder": 1000
+              },
+              "assignee": {
+                "id": 1986262,
+                "userId": null,
+                "name": "髙橋嶺斗",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.takahashi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR",
+                  "name": "髙橋嶺斗",
+                  "uniqueId": "rtakahashi-19Z",
+                  "iconUrl": "https://apps.nulab.com/account/cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR/photo/large?t=1749604212"
+                },
+                "keyword": "髙橋嶺斗 髙KYOUBASHIREITO",
+                "lastLoginTime": "2026-01-20T00:34:41Z"
+              },
+              "dueDate": "2026-01-22T00:00:00Z",
+              "startDate": "2026-01-21T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-86",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135014027,
+              "issueKey": "CRAFT-85",
+              "summary": "実績取込バッチで able 予約を区別する",
+              "description": "## 概要\n実績取込時に able 予約を区別し、カルテ作成バッチの対象外とする\nRSV_NO = 'Able' で登録すれば、カルテ作成対象外となるはず\nAble 予約の区別\n- 航空券番号の上位３桁が 205 = Altea 予約\n- 上記以外 Able 予約\n[実績取込](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQCA4pAM_2OHT5yUxAlqvhswAUjIYis9KHuz7xSOYdV0K9U?e=i953hX)\n## 作業内容\n* [ ] ソース修正\n* [ ] 単体テスト\n\n## 成果物\n修正ソース・単体テスト結果\n\n## 完了条件\n- ソース・テスト結果のレビュー指摘事項対応済\n- ソース push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986262,
+                "userId": null,
+                "name": "髙橋嶺斗",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.takahashi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR",
+                  "name": "髙橋嶺斗",
+                  "uniqueId": "rtakahashi-19Z",
+                  "iconUrl": "https://apps.nulab.com/account/cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR/photo/large?t=1749604212"
+                },
+                "keyword": "髙橋嶺斗 髙KYOUBASHIREITO",
+                "lastLoginTime": "2026-01-20T00:34:41Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-85",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        }
+      ],
+      "incompleteIssues": [
+        {
+          "assigneeName": "n.saito",
+          "assigneeId": 823263,
+          "issues": [
+            {
+              "id": 135080886,
+              "issueKey": "CRAFT-92",
+              "summary": "一括請求書パターンマスタのプロファイル項目参照先修正",
+              "description": "## 概要\n一括請求パターンの状態では得意先が一意でないため\nMAST_CUSTOMER_REPORT_ITEM\nを参照しているのはおかしい\nMAST_CUSTOMER_REPORT_ITEMがもともと参照しているマスタ\nMAST_REPORT_ITEM_LANGUAGE　と　MAST_REPORT_ITEM\nを汎用コードで参照しなければいけない\n\n## 作業内容\n実施する作業を具体的に記載してください。\n* [ ] ソース修正\n* [ ] テスト\n* [ ] マージリクエスト作成\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- ソース・テスト結果について、レビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 823263,
+                "userId": null,
+                "name": "n.saito",
+                "roleType": 1,
+                "lang": "ja",
+                "mailAddress": "n.saito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "kI5lLxZWkuY2XBiLf7BpH5A2nLhKO7Sj5z9C776ZpoIzW78Grh",
+                  "name": "n.saito",
+                  "uniqueId": "nsaito8",
+                  "iconUrl": "https://apps.nulab.com/account/kI5lLxZWkuY2XBiLf7BpH5A2nLhKO7Sj5z9C776ZpoIzW78Grh/photo/large?t=1685971274"
+                },
+                "keyword": "n.saito n.saito",
+                "lastLoginTime": "2026-01-20T06:46:56Z"
+              },
+              "dueDate": "2026-01-16T00:00:00Z",
+              "startDate": "2026-01-16T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-92",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135056192,
+              "issueKey": "CRAFT-90",
+              "summary": "20260116_NEC案件定例",
+              "description": "## 開催日時\n2026/01/16\n\n## 参加者\n- クラフト\n    - 梶原さん\n    - 青池さん\n- エイ・フォース\n    - 齋藤\n    - 上垣内\n    - 石川\n\n## MTG の目的\n- SFJ 結合テスト結果の報告\n    - 一旦の区切りについて合意を得る\n- AIRDO 進捗報告とテストの準備を確認\n- 不具合対応の状況報告と瑕疵かどうかの認識合わせをする\n\n## アジェンダ\n- SFJ 結合テスト結果について\n    - テスト実施不可の要因として SFJ 側の問題がある\n    - 1/16 までにテスト不可の状況\n- AIRDO 仕様変更対応の作業計画\n    - 来週いっぱいで製造\n    - １月最終週からテスト開始予定\n    - テスト方法について梶原さんに説明してもらう\n- 不具合対応について\n    - 一括請求書関連について当社で対応中が２件（本日完了予定）\n    - その他仕様確認 or データ確認をお願いしている\n    - えきねっとも対応を進めている\n        - 仕様の確認が必要なもの２件\n- 前回宿題事項の確認\n- 前回未決事項の確認\n- 課題の検討・判断\n\n## 資料\n[AIRDOテスト環境情報](https://onenec.box.com/s/j161kaa9vouvg6welthhnr6uiwymyz3x)\n[旧議事録](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQCWMNLri2QfSaeH_ickVqzRAYqaK6bnhrLojwua2ODKnxg?e=jSh9uc)\n## 議論メモ\n\n## 決定事項\n\n\n## 宿題事項\n- 一括請求書パターンマスタのテーブル参照先変更は push する\n    - テーブル参照先のみ変更したソースで push する\n    - 担当：齋藤\n    - 期限：1/16\n    - [CRAFT-92 一括請求書パターンマスタのプロファイル項目参照先修正](https://a-force.backlog.com/view/CRAFT-92)\n- AIRDO テスト環境の確認\n    - AIRDO テスト環境資料を確認し、テスト方法等の説明をいただく\n    - 担当：クラフト梶原様\n    - 期限：1/23\n    - [CRAFT-91 AIRDO テスト環境の確認）](https://a-force.backlog.com/view/CRAFT-91)",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 823263,
+                "userId": null,
+                "name": "n.saito",
+                "roleType": 1,
+                "lang": "ja",
+                "mailAddress": "n.saito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "kI5lLxZWkuY2XBiLf7BpH5A2nLhKO7Sj5z9C776ZpoIzW78Grh",
+                  "name": "n.saito",
+                  "uniqueId": "nsaito8",
+                  "iconUrl": "https://apps.nulab.com/account/kI5lLxZWkuY2XBiLf7BpH5A2nLhKO7Sj5z9C776ZpoIzW78Grh/photo/large?t=1685971274"
+                },
+                "keyword": "n.saito n.saito",
+                "lastLoginTime": "2026-01-20T06:46:56Z"
+              },
+              "dueDate": "2026-01-16T00:00:00Z",
+              "startDate": "2026-01-16T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093433,
+                  "projectId": 470542,
+                  "name": "管理",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-90",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "室井　梨沙",
+          "assigneeId": 2027570,
+          "issues": [
+            {
+              "id": 135388585,
+              "issueKey": "CRAFT-105",
+              "summary": "得意先別一括請求書マスタの重複エラー修正",
+              "description": "## 概要\n請求書パターンが同一の種類のものを削除してから再作成を行おうとすると重複エラーが発生する問題を修正する。\n\n## 発生の背景\n請求書パターンが同一の種類のものを削除してから再作成を行おうとすると重複エラーが発生する。\n\n## 原因の推測\nバリデーションチェック時に削除フラグを見ていないため。\n\n## 作業内容\n* [x] バリデーションチェックの修正（削除フラグを考慮）\n* [x] 再作成が可能になるように修正\n* [x] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 削除した請求書パターンを再作成できるようになったことを確認済み\n- ソース・テスト結果について、レビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2027570,
+                "userId": null,
+                "name": "室井　梨沙",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.muroi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY",
+                  "name": "室井　梨沙",
+                  "uniqueId": "rmuroi-uoT",
+                  "iconUrl": "https://apps.nulab.com/account/EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY/photo/large?t=1751952121"
+                },
+                "keyword": "室井　梨沙 MUROI RISA",
+                "lastLoginTime": "2026-01-19T08:45:40Z"
+              },
+              "dueDate": "2026-01-19T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-105",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135013088,
+              "issueKey": "CRAFT-84",
+              "summary": "SSO 時の LinkKey 採番ロジック変更",
+              "description": "## 概要\nSSO 時に毎回 LinkKey を採番するのではなく、申込に紐づくように LinkKey を渡す\n新規と発券・変更・取消のそれぞれで修正する\n[新規申込SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQAfo5kWRnzZQKF8R3cg7ZdOARLL02GvCbAkDjp7dp5LlyA?e=fhqIaJ)\n[発券・変更・取消SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQA4pMblKusnQ60aOk5jdwz3AR7ILgV55B9F1VkJpUSXYSw?e=Q3ooZC)\n## 作業内容\n* [ ] 新規申込時 SSO 機能のソース修正\n* [ ] 新規申込時 SSO 機能の単体テスト\n* [ ] 変更時 SSO 機能のソース修正\n* [ ] 予約確認画面からの新規 SSO 機能のソース修正\n* [ ] 変更時 SSO 予約確認新規 SSO の単体テスト\n\n## 成果物\nソースコード\nテスト結果\n\n## 完了条件\nソース・テスト結果について、レビュー指摘事項対応済\nソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 2027570,
+                "userId": null,
+                "name": "室井　梨沙",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.muroi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY",
+                  "name": "室井　梨沙",
+                  "uniqueId": "rmuroi-uoT",
+                  "iconUrl": "https://apps.nulab.com/account/EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY/photo/large?t=1751952121"
+                },
+                "keyword": "室井　梨沙 MUROI RISA",
+                "lastLoginTime": "2026-01-19T08:45:40Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-84",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "上垣内　恒",
+          "assigneeId": 2209653,
+          "issues": [
+            {
+              "id": 135641598,
+              "issueKey": "CRAFT-106",
+              "summary": "SFJの試験項目追加",
+              "description": "## 概要\nSFJの試験項目を追加する必要がある。\n\n## 背景\n処理で怪しい挙動があったため、影響確認が必要。\nSFJの修正の影響がある可能性。\n\n## 作業内容\n* [ ] 試験項目の追加\n* [x] 影響確認の実施\n\n## 成果物\n- 試験項目リスト\n- 影響確認結果\n\n## 完了条件\n- 試験項目の追加が完了している\n- 影響確認が完了している",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": null,
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-106",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135091675,
+              "issueKey": "CRAFT-100",
+              "summary": "結合テスト仕様書の作成",
+              "description": "## 概要\nBCD_F1に関する結合テスト仕様書を作成する。\n\n## 作業内容\n* [x] 結合テスト仕様書作成\n* [ ] レビュー対応\n\n## 成果物\n- 結合テスト仕様書\n\n## 完了条件\n- 結合テスト仕様書のレビュー指摘事項対応済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-100",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135079766,
+              "issueKey": "CRAFT-91",
+              "summary": "AIRDO テスト環境の確認",
+              "description": "## 発生の背景\nAIRDO テスト環境の資料を共有いただいたが、テスト方法等説明いただく必要がある\n\n## 影響範囲\n[結合テスト実施](https://a-force.backlog.com/view/CRAFT-89)\n\n## 決定者\n上垣内さん\n\n## 決定事項\n",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-23T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [],
+              "url": "https://a-force.backlog.com/view/CRAFT-91",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135016177,
+              "issueKey": "CRAFT-88",
+              "summary": "結合テスト準備",
+              "description": "## 概要\n結合テスト仕様書の修正\nテスト環境の使用方法確認や疎通確認\n[作成済のテスト仕様書](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQB41eEVYeRvTqv5j4CY6PTuASK7InMJTDgse-u5lUTRPcA?e=GSnO3I)\n[AirDo テスト環境ログイン情報](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQAEGxz_acNBS6h8FmeEB_EFAfTUTfIKZSEmsnq36EYd1f0?e=BcszR8)\n## 作業内容\n実施する作業を具体的に記載してください。\n* [x] 結合テスト仕様書修正\n* [x] テスト環境への疎通確認（SSO、 予約取得、実績取得）\n\n## 成果物\n結合テスト仕様書\n\n## 完了条件\n- 結合テスト仕様書のレビュー指摘事項対応済\n- テスト環境疎通確認済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-23T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-88",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "石川　皓基",
+          "assigneeId": 1531256,
+          "issues": [
+            {
+              "id": 135091659,
+              "issueKey": "CRAFT-98",
+              "summary": "入金消込画面のZEUS決済処理（製造）",
+              "description": "## 概要\n入金消込画面において、得意先マスタの一括請求書に対するZEUS決済単位の設定情報を元に設定された方式でZEUS決済を追加するようにする製造を行う。\n\n## 作業内容\n* [ ] 製造\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 製造のレビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1531256,
+                "userId": "*2fmgS5XCt8",
+                "name": "石川　皓基",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "k.ishikawa@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2",
+                  "name": "石川　皓基",
+                  "uniqueId": "koki-ishikawa",
+                  "iconUrl": "https://apps.nulab.com/account/zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2/photo/large?t=1719796959"
+                },
+                "keyword": "石川　皓基 ISHIKAWA HIKARUMOTOKIMOTOI",
+                "lastLoginTime": "2026-01-20T14:46:52Z"
+              },
+              "dueDate": "2026-01-22T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-98",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135091648,
+              "issueKey": "CRAFT-97",
+              "summary": "入金消込画面のZEUS決済処理（設計）",
+              "description": "## 概要\n入金消込画面において、得意先マスタの一括請求書に対するZEUS決済単位の設定情報を元に設定された方式でZEUS決済を追加するようにする設計を行う。\n\n## 作業内容\n* [ ] 設計\n* [ ] レビュー対応\n\n## 成果物\n- 設計書\n\n## 完了条件\n- 設計書のレビュー指摘事項対応済\n\n## 設計レビューでの決定事項\n\n### 入金消込画面のテーブル管理について\n- **決定**: テーブル管理は冗長であるため不要\n- **決定**: 未決済データのみZEUS決済対象にする\n\n### receipt_moneyのpublication_invoice_noの扱い\n- **決定**: 個別請求書番号が入るのがよい\n- **決定**: 集計処理のSQLで対応する\n\n### カード決済処理方式\n- **決定**: カード決済は同期処理でよい\n\n## 関連情報\n- [CRAFT-103 【シス検3839】1by1決済構築のミーティング](https://a-force.backlog.com/view/CRAFT-103)\n",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 1531256,
+                "userId": "*2fmgS5XCt8",
+                "name": "石川　皓基",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "k.ishikawa@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2",
+                  "name": "石川　皓基",
+                  "uniqueId": "koki-ishikawa",
+                  "iconUrl": "https://apps.nulab.com/account/zNXxigLmQDlTGHFTsEOcZX1OqaOatNzVbs9FmRHWWpAe4VOWy2/photo/large?t=1719796959"
+                },
+                "keyword": "石川　皓基 ISHIKAWA HIKARUMOTOKIMOTOI",
+                "lastLoginTime": "2026-01-20T14:46:52Z"
+              },
+              "dueDate": "2026-01-19T00:00:00Z",
+              "startDate": "2026-01-16T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093425,
+                  "projectId": 470542,
+                  "name": "設計",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-97",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "余澤　仁",
+          "assigneeId": 1986258,
+          "issues": [
+            {
+              "id": 135091625,
+              "issueKey": "CRAFT-96",
+              "summary": "入金消込画面の入金額制御と入金情報の集計処理（製造）",
+              "description": "## 概要\n入金消込画面において、得意先マスタで設定したZEUS決済単位ごとに適切に集計できるようにする製造を行う。また、入金方法をカードに設定した場合には、入金額を非活性にする制御の製造を行う。\n\n## 作業内容\n* [ ] 製造\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 製造のレビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986258,
+                "userId": null,
+                "name": "余澤　仁",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "t.yo@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9",
+                  "name": "余澤　仁",
+                  "uniqueId": "tyo-YDG",
+                  "iconUrl": "https://apps.nulab.com/account/uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9/photo/large?t=1749603178"
+                },
+                "keyword": "余澤　仁 YOSAWA HITOSHIZINMASASHISHINOBU",
+                "lastLoginTime": "2026-01-18T06:44:34Z"
+              },
+              "dueDate": "2026-01-22T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-96",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135091595,
+              "issueKey": "CRAFT-95",
+              "summary": "入金消込画面の入金額制御と入金情報の集計処理（設計）",
+              "description": "## 概要\n入金消込画面において、得意先マスタで設定したZEUS決済単位ごとに適切に集計できるようにする設計を行う。また、入金方法をカードに設定した場合には、入金額を非活性にする制御の設計を行う。\n\n## 作業内容\n* [ ] 設計\n* [ ] レビュー対応\n\n## 成果物\n- 設計書\n\n## 完了条件\n- 設計書のレビュー指摘事項対応済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 1986258,
+                "userId": null,
+                "name": "余澤　仁",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "t.yo@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9",
+                  "name": "余澤　仁",
+                  "uniqueId": "tyo-YDG",
+                  "iconUrl": "https://apps.nulab.com/account/uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9/photo/large?t=1749603178"
+                },
+                "keyword": "余澤　仁 YOSAWA HITOSHIZINMASASHISHINOBU",
+                "lastLoginTime": "2026-01-18T06:44:34Z"
+              },
+              "dueDate": "2026-01-19T00:00:00Z",
+              "startDate": "2026-01-16T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093425,
+                  "projectId": 470542,
+                  "name": "設計",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-95",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135091574,
+              "issueKey": "CRAFT-94",
+              "summary": "得意先マスタの設定（実装）",
+              "description": "## 概要\n得意先マスタ画面に一括請求書に対するZEUS決済単位の設定を追加して、個別請求書単位と一括請求書単位を選べるようにする実装を行う。\n\n## 作業内容\n* [ ] 実装\n* [ ] 単体テスト\n\n## 成果物\n- ソースコード\n- テスト結果\n\n## 完了条件\n- 実装のレビュー指摘事項対応済\n- ソースの push 済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 1986258,
+                "userId": null,
+                "name": "余澤　仁",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "t.yo@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9",
+                  "name": "余澤　仁",
+                  "uniqueId": "tyo-YDG",
+                  "iconUrl": "https://apps.nulab.com/account/uDAclpEgpCdei9pAIGuHlkmMiokrBzC9YzjshFKeJtrn3hG1Y9/photo/large?t=1749603178"
+                },
+                "keyword": "余澤　仁 YOSAWA HITOSHIZINMASASHISHINOBU",
+                "lastLoginTime": "2026-01-18T06:44:34Z"
+              },
+              "dueDate": "2026-01-16T00:00:00Z",
+              "startDate": "2026-01-16T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-94",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "髙橋嶺斗",
+          "assigneeId": 1986262,
+          "issues": [
+            {
+              "id": 135388567,
+              "issueKey": "CRAFT-104",
+              "summary": "SFJのマイグレーション後の動作確認",
+              "description": "## 概要\n納品物の整理ができていなかったため、一度動作確認を行って正常に動作しているか確認してから納品を行う必要がある。\n\n## 発生の背景\n納品物の整理ができていなかったため、マイグレーション後の動作確認が必要となった。\n\n## 重要度\n- 納品物のため、フォローが必要\n- 失敗すると影響が大きい\n\n## 作業内容\n* [ ] マイグレーション後の動作確認\n* [ ] 正常動作の確認\n* [ ] 納品物の整理\n\n## 成果物\n- 動作確認結果\n- 納品物\n\n## 完了条件\n- 動作確認が完了し、正常に動作していることを確認済み\n- 納品物の整理が完了",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986262,
+                "userId": null,
+                "name": "髙橋嶺斗",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.takahashi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR",
+                  "name": "髙橋嶺斗",
+                  "uniqueId": "rtakahashi-19Z",
+                  "iconUrl": "https://apps.nulab.com/account/cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR/photo/large?t=1749604212"
+                },
+                "keyword": "髙橋嶺斗 髙KYOUBASHIREITO",
+                "lastLoginTime": "2026-01-20T00:34:41Z"
+              },
+              "dueDate": "2026-01-19T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 2,
+                "name": "高"
+              },
+              "category": [
+                {
+                  "id": 2093433,
+                  "projectId": 470542,
+                  "name": "管理",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-104",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            },
+            {
+              "id": 135014027,
+              "issueKey": "CRAFT-85",
+              "summary": "実績取込バッチで able 予約を区別する",
+              "description": "## 概要\n実績取込時に able 予約を区別し、カルテ作成バッチの対象外とする\nRSV_NO = 'Able' で登録すれば、カルテ作成対象外となるはず\nAble 予約の区別\n- 航空券番号の上位３桁が 205 = Altea 予約\n- 上記以外 Able 予約\n[実績取込](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQCA4pAM_2OHT5yUxAlqvhswAUjIYis9KHuz7xSOYdV0K9U?e=i953hX)\n## 作業内容\n* [ ] ソース修正\n* [ ] 単体テスト\n\n## 成果物\n修正ソース・単体テスト結果\n\n## 完了条件\n- ソース・テスト結果のレビュー指摘事項対応済\n- ソース push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986262,
+                "userId": null,
+                "name": "髙橋嶺斗",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.takahashi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR",
+                  "name": "髙橋嶺斗",
+                  "uniqueId": "rtakahashi-19Z",
+                  "iconUrl": "https://apps.nulab.com/account/cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR/photo/large?t=1749604212"
+                },
+                "keyword": "髙橋嶺斗 髙KYOUBASHIREITO",
+                "lastLoginTime": "2026-01-20T00:34:41Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-85",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        }
+      ],
+      "dueTodayIssues": [
+        {
+          "assigneeName": "室井　梨沙",
+          "assigneeId": 2027570,
+          "issues": [
+            {
+              "id": 135013088,
+              "issueKey": "CRAFT-84",
+              "summary": "SSO 時の LinkKey 採番ロジック変更",
+              "description": "## 概要\nSSO 時に毎回 LinkKey を採番するのではなく、申込に紐づくように LinkKey を渡す\n新規と発券・変更・取消のそれぞれで修正する\n[新規申込SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQAfo5kWRnzZQKF8R3cg7ZdOARLL02GvCbAkDjp7dp5LlyA?e=fhqIaJ)\n[発券・変更・取消SSO](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQA4pMblKusnQ60aOk5jdwz3AR7ILgV55B9F1VkJpUSXYSw?e=Q3ooZC)\n## 作業内容\n* [ ] 新規申込時 SSO 機能のソース修正\n* [ ] 新規申込時 SSO 機能の単体テスト\n* [ ] 変更時 SSO 機能のソース修正\n* [ ] 予約確認画面からの新規 SSO 機能のソース修正\n* [ ] 変更時 SSO 予約確認新規 SSO の単体テスト\n\n## 成果物\nソースコード\nテスト結果\n\n## 完了条件\nソース・テスト結果について、レビュー指摘事項対応済\nソースの push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 2027570,
+                "userId": null,
+                "name": "室井　梨沙",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.muroi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY",
+                  "name": "室井　梨沙",
+                  "uniqueId": "rmuroi-uoT",
+                  "iconUrl": "https://apps.nulab.com/account/EdLSJLPqhvOjWLXV1bXPUPNwPAtQGouzVB4rqitGuT1htUTbzY/photo/large?t=1751952121"
+                },
+                "keyword": "室井　梨沙 MUROI RISA",
+                "lastLoginTime": "2026-01-19T08:45:40Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-84",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "上垣内　恒",
+          "assigneeId": 2209653,
+          "issues": [
+            {
+              "id": 135091675,
+              "issueKey": "CRAFT-100",
+              "summary": "結合テスト仕様書の作成",
+              "description": "## 概要\nBCD_F1に関する結合テスト仕様書を作成する。\n\n## 作業内容\n* [x] 結合テスト仕様書作成\n* [ ] レビュー対応\n\n## 成果物\n- 結合テスト仕様書\n\n## 完了条件\n- 結合テスト仕様書のレビュー指摘事項対応済",
+              "status": {
+                "id": 3,
+                "projectId": 470542,
+                "name": "処理済み",
+                "color": "#5eb5a6",
+                "displayOrder": 3000
+              },
+              "assignee": {
+                "id": 2209653,
+                "userId": null,
+                "name": "上垣内　恒",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "h.uegaito@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG",
+                  "name": "上垣内　恒",
+                  "uniqueId": "huegaito",
+                  "iconUrl": "https://apps.nulab.com/account/RTDUKByVGdiXH8OE8AhFOIVUHWRIgjIEPHEixbEXwRNM4jrXGG/photo/large?t=1765869490"
+                },
+                "keyword": "上垣内　恒 KAMIGAKINAI HISASHITUNE",
+                "lastLoginTime": "2026-01-20T08:08:56Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-19T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093430,
+                  "projectId": 470542,
+                  "name": "結合テスト",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-100",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        },
+        {
+          "assigneeName": "髙橋嶺斗",
+          "assigneeId": 1986262,
+          "issues": [
+            {
+              "id": 135014027,
+              "issueKey": "CRAFT-85",
+              "summary": "実績取込バッチで able 予約を区別する",
+              "description": "## 概要\n実績取込時に able 予約を区別し、カルテ作成バッチの対象外とする\nRSV_NO = 'Able' で登録すれば、カルテ作成対象外となるはず\nAble 予約の区別\n- 航空券番号の上位３桁が 205 = Altea 予約\n- 上記以外 Able 予約\n[実績取込](https://aforce1119.sharepoint.com/:x:/s/msteams_2192a2-NEC/IQCA4pAM_2OHT5yUxAlqvhswAUjIYis9KHuz7xSOYdV0K9U?e=i953hX)\n## 作業内容\n* [ ] ソース修正\n* [ ] 単体テスト\n\n## 成果物\n修正ソース・単体テスト結果\n\n## 完了条件\n- ソース・テスト結果のレビュー指摘事項対応済\n- ソース push 済",
+              "status": {
+                "id": 2,
+                "projectId": 470542,
+                "name": "処理中",
+                "color": "#4488c5",
+                "displayOrder": 2000
+              },
+              "assignee": {
+                "id": 1986262,
+                "userId": null,
+                "name": "髙橋嶺斗",
+                "roleType": 2,
+                "lang": "ja",
+                "mailAddress": "r.takahashi@a-force.co.jp",
+                "nulabAccount": {
+                  "nulabId": "cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR",
+                  "name": "髙橋嶺斗",
+                  "uniqueId": "rtakahashi-19Z",
+                  "iconUrl": "https://apps.nulab.com/account/cubrWJkQdrxLwKETfWEzzacFNRhuYridDqCuOoR1NdTcYe8rBR/photo/large?t=1749604212"
+                },
+                "keyword": "髙橋嶺斗 髙KYOUBASHIREITO",
+                "lastLoginTime": "2026-01-20T00:34:41Z"
+              },
+              "dueDate": "2026-01-21T00:00:00Z",
+              "startDate": "2026-01-20T00:00:00Z",
+              "priority": {
+                "id": 3,
+                "name": "中"
+              },
+              "category": [
+                {
+                  "id": 2093427,
+                  "projectId": 470542,
+                  "name": "実装",
+                  "displayOrder": 2147483646
+                }
+              ],
+              "url": "https://a-force.backlog.com/view/CRAFT-85",
+              "project": {
+                "id": 470542,
+                "projectKey": "CRAFT",
+                "name": "CRAFT"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "activeAssigneeIds": []
+}

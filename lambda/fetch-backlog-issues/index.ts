@@ -240,10 +240,10 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     return false;
                 });
 
-                // 過去のスケジュールで未完了の課題（開始日が過去、ステータスが未完了）
+                // 期限超過・未完了の課題（期限日が過去、ステータスが未完了）
                 const yesterdayStr = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
                 const incompleteIssues = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
-                    startDateUntil: yesterdayStr,
+                    dueDateUntil: yesterdayStr,
                     statusId: incompleteStatusIds,
                 }, credentials);
 

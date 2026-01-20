@@ -93,7 +93,7 @@ describe('fetch-backlog-issues', () => {
                 // 課題一覧取得（本日対応予定、期限超過、今日締め切りの各クエリに対応）
                 else if (options.path?.includes('/issues')) {
                   // 本日対応予定の課題のクエリ（startDateSince/startDateUntil または dueDateSince/dueDateUntil）
-                  // 期限超過の課題のクエリ（startDateUntil: yesterday）
+                  // 期限超過の課題のクエリ（dueDateUntil: yesterday）
                   // 今日締め切りの課題のクエリ（dueDateSince: today, dueDateUntil: today）
                   handler(JSON.stringify([]));
                 }
@@ -900,13 +900,13 @@ describe('fetch-backlog-issues', () => {
       });
     });
 
-    describe('過去のスケジュールで未完了の課題の抽出', () => {
+    describe('期限超過・未完了の課題の抽出', () => {
       beforeEach(() => {
         setupCommonMocks();
         mockDate(today);
       });
 
-      it('開始日が昨日で未完了の課題が抽出される', async () => {
+      it('期限日が昨日で未完了の課題が抽出される', async () => {
         const mockRequest = https.request as jest.Mock;
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
@@ -919,15 +919,15 @@ describe('fetch-backlog-issues', () => {
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
                   } else if (options.path?.includes('/issues')) {
-                    // 過去のスケジュールのクエリ（startDateUntil: yesterday）の場合
-                    if (options.path?.includes('startDateUntil=' + yesterday)) {
+                    // 期限超過の課題のクエリ（dueDateUntil: yesterday）の場合
+                    if (options.path?.includes('dueDateUntil=' + yesterday)) {
                       const issue = {
                         id: 1,
                         issueKey: 'PROJECT1-1',
                         summary: 'Test Issue',
                         description: '',
                         status: { id: 1, name: '未対応' },
-                        startDate: yesterday + 'T00:00:00Z',
+                        dueDate: yesterday + 'T00:00:00Z',
                         priority: { id: 2, name: '中' },
                         projectId: 1,
                       };
@@ -955,7 +955,7 @@ describe('fetch-backlog-issues', () => {
         expect(incompleteIssues.length).toBeGreaterThan(0);
       });
 
-      it('開始日が過去で未完了の課題が抽出される', async () => {
+      it('期限日が過去で未完了の課題が抽出される', async () => {
         const mockRequest = https.request as jest.Mock;
         const pastDate = '2026-01-10';
         mockRequest.mockImplementation((options: any, callback: any) => {
@@ -969,14 +969,14 @@ describe('fetch-backlog-issues', () => {
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
                   } else if (options.path?.includes('/issues')) {
-                    if (options.path?.includes('startDateUntil=' + yesterday)) {
+                    if (options.path?.includes('dueDateUntil=' + yesterday)) {
                       const issue = {
                         id: 1,
                         issueKey: 'PROJECT1-1',
                         summary: 'Test Issue',
                         description: '',
                         status: { id: 1, name: '未対応' },
-                        startDate: pastDate + 'T00:00:00Z',
+                        dueDate: pastDate + 'T00:00:00Z',
                         priority: { id: 2, name: '中' },
                         projectId: 1,
                       };
@@ -1004,7 +1004,7 @@ describe('fetch-backlog-issues', () => {
         expect(incompleteIssues.length).toBeGreaterThan(0);
       });
 
-      it('開始日が今日で未完了の課題が除外される', async () => {
+      it('期限日が今日で未完了の課題が期限超過リストには含まれない', async () => {
         const mockRequest = https.request as jest.Mock;
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
@@ -1038,7 +1038,7 @@ describe('fetch-backlog-issues', () => {
         expect(incompleteIssues).toHaveLength(0);
       });
 
-      it('開始日が未来で未完了の課題が除外される', async () => {
+      it('期限日が未来で未完了の課題が期限超過リストには含まれない', async () => {
         const mockRequest = https.request as jest.Mock;
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
@@ -1072,7 +1072,7 @@ describe('fetch-backlog-issues', () => {
         expect(incompleteIssues).toHaveLength(0);
       });
 
-      it('開始日が過去で完了済みの課題が除外される', async () => {
+      it('期限日が過去で完了済みの課題が除外される', async () => {
         const mockRequest = https.request as jest.Mock;
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
@@ -1107,7 +1107,7 @@ describe('fetch-backlog-issues', () => {
         expect(incompleteIssues).toHaveLength(0);
       });
 
-      it('開始日が未設定の課題が除外される', async () => {
+      it('期限日が未設定の課題が期限超過リストには含まれない', async () => {
         const mockRequest = https.request as jest.Mock;
         mockRequest.mockImplementation((options: any, callback: any) => {
           const mockResponse: any = {
