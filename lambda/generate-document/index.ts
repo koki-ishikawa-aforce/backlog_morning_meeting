@@ -74,7 +74,11 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
     const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
     const dateStr = formatDate(jstNow); // YYYY/MM/DD形式
     const timeStr = formatTime(jstNow); // HH:mm形式
-    const fileNameDateStr = jstNow.toISOString().split('T')[0]; // YYYY-MM-DD形式（ファイル名用）
+    // YYYYMMDD形式（ファイル名用）
+    const year = jstNow.getFullYear();
+    const month = String(jstNow.getMonth() + 1).padStart(2, '0');
+    const day = String(jstNow.getDate()).padStart(2, '0');
+    const fileNameDateStr = `${year}${month}${day}`;
 
     // OpenAIを使う場合（失敗時は既存ロジックにフォールバック）
     const openAiSecretName = process.env.OPENAI_API_KEY_SECRET_NAME || '';
@@ -124,7 +128,7 @@ async function generateMarkdownDocumentWithOpenAi(
   model: string
 ): Promise<Document> {
   const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
-  const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
+  const fileName = `${fileNameDateStr}_【${projectName}】朝会資料.md`;
 
   // 件数を事前計算（LLMに数えさせず、この値をそのまま使用させる）
   const countIssues = (groups: IssuesByAssignee[]) =>
@@ -328,7 +332,7 @@ function generateMarkdownDocument(
     markdown += `---\n\n`;
   }
 
-  const fileName = `morning-meeting-${projectKey}-${fileNameDateStr}.md`;
+  const fileName = `${fileNameDateStr}_【${projectName}】朝会資料.md`;
 
   return {
     projectKey,

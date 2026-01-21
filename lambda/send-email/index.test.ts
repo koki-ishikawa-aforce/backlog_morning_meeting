@@ -42,7 +42,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document\n\n## Test Section',
           },
         ],
@@ -77,13 +77,13 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document 1',
           },
           {
             projectKey: 'PROJECT2',
             projectName: 'Project 2',
-            fileName: 'morning-meeting-PROJECT2-2024-01-20.md',
+            fileName: '20240120_【Project 2】朝会資料.md',
             content: '# Test Document 2',
           },
         ],
@@ -118,7 +118,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Header\n\n**Bold text**\n\n[Link](https://example.com)',
           },
         ],
@@ -134,7 +134,7 @@ describe('send-email', () => {
         const messageStr = Buffer.from(rawMessage).toString('utf-8');
         expect(messageStr).toContain('text/html');
         expect(messageStr).toContain('text/plain');
-        expect(messageStr).toContain('morning-meeting-PROJECT1-2024-01-20.md');
+        expect(messageStr).toContain('20240120_【Project 1】朝会資料.md');
       }
     });
   });
@@ -169,7 +169,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -202,7 +202,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -239,13 +239,13 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document 1',
           },
           {
             projectKey: 'PROJECT2',
             projectName: 'Project 2',
-            fileName: 'morning-meeting-PROJECT2-2024-01-20.md',
+            fileName: '20240120_【Project 2】朝会資料.md',
             content: '# Test Document 2',
           },
         ],
@@ -277,7 +277,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -308,7 +308,7 @@ describe('send-email', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -673,7 +673,7 @@ describe('sendEmail - HTML/PlainText統合', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: `# 【朝会ドキュメント】2024/01/20 - Project 1
 
 生成時刻: 10:00
@@ -707,7 +707,7 @@ describe('sendEmail - HTML/PlainText統合', () => {
         expect(messageStr).not.toContain('## 📝 議事録');
         expect(messageStr).not.toContain('Test User');
         // 添付ファイルには議事録セクションが含まれる
-        expect(messageStr).toContain('morning-meeting-PROJECT1-2024-01-20.md');
+        expect(messageStr).toContain('20240120_【Project 1】朝会資料.md');
         // Base64エンコードされた添付ファイルに議事録が含まれることを確認
         // Content-Transfer-Encoding: base64 の後のBase64データを抽出
         const attachmentMatch = messageStr.match(/Content-Transfer-Encoding: base64[\s\S]*?\r\n\r\n([A-Za-z0-9+\/=\s\r\n]+?)(?=\r\n--|$)/);

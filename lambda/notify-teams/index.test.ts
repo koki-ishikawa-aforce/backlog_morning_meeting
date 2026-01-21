@@ -53,7 +53,7 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -97,7 +97,7 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -136,13 +136,13 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document 1',
           },
           {
             projectKey: 'PROJECT2',
             projectName: 'Project 2',
-            fileName: 'morning-meeting-PROJECT2-2024-01-20.md',
+            fileName: '20240120_【Project 2】朝会資料.md',
             content: '# Test Document 2',
           },
         ],
@@ -175,7 +175,7 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
@@ -213,13 +213,13 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document 1',
           },
           {
             projectKey: 'PROJECT2',
             projectName: 'Project 2',
-            fileName: 'morning-meeting-PROJECT2-2024-01-20.md',
+            fileName: '20240120_【Project 2】朝会資料.md',
             content: '# Test Document 2',
           },
         ],
@@ -262,7 +262,7 @@ describe('notify-teams', () => {
           {
             projectKey: 'PROJECT1',
             projectName: 'Project 1',
-            fileName: 'morning-meeting-PROJECT1-2024-01-20.md',
+            fileName: '20240120_【Project 1】朝会資料.md',
             content: '# Test Document',
           },
         ],
