@@ -75,3 +75,17 @@ npx jest -t "テスト名の一部"
 ```
 
 AWS SDKのモックには`aws-sdk-client-mock`を使用。
+
+## Rules
+
+詳細な規約は以下を参照：
+- コーディング規約: docs/coding-standards.md
+- コミット規約: docs/commit-conventions.md
+
+## Guardrails
+
+以下の操作は禁止（.claude/settings.jsonで設定済み）：
+- `git push --force` / `git reset --hard` / `git clean -f`
+- `rm -rf` の実行
+- `.env` ファイルの内容をコミットに含める
+- Secrets Manager / Parameter Store のキー名変更
