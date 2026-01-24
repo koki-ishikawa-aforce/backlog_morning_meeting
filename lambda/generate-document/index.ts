@@ -183,6 +183,15 @@ async function generateMarkdownDocumentWithOpenAi(
     meetingNotes: generateMeetingNotesData(todayIssues, incompleteIssues, dueTodayIssues),
   };
 
+  // デバッグログ: OpenAIに渡すmeetingNotesデータ
+  console.log(`[${projectKey}] OpenAI用 meetingNotesデータ:`);
+  for (const item of input.meetingNotes) {
+    console.log(`  ${item.assigneeName}: incomplete=${item.incomplete.length}件, today=${item.today.length}件`);
+    if (item.today.length > 0) {
+      item.today.forEach(t => console.log(`    today: ${t.issueKey} - ${t.summary}`));
+    }
+  }
+
   const system = [
     'あなたはプロジェクトの朝会ドキュメントをMarkdownで生成するアシスタントです。',
     '必ずMarkdownのみを出力し、前後に説明文を付けないでください。',
