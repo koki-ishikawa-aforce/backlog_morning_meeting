@@ -1048,4 +1048,132 @@ describe('generate-document', () => {
       });
     });
   });
+
+  describe('「その他」セクションと「追加課題」欄', () => {
+    const createTestIssue = (overrides: any = {}) => ({
+      id: 1,
+      issueKey: 'PROJECT1-1',
+      summary: 'テスト課題',
+      description: '',
+      status: { id: 1, name: '未対応' },
+      assignee: { id: 1, name: 'Test User' },
+      dueDate: '2024-01-20',
+      startDate: '2024-01-15',
+      priority: { id: 1, name: '中' },
+      category: [],
+      url: 'https://example.com/view/PROJECT1-1',
+      project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+      ...overrides,
+    });
+
+    describe('本日対応予定課題の「追加課題」欄', () => {
+      it('本日対応予定の課題に「追加課題」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        const todaySection = content.split('#### 📅 本日対応予定')[1].split('####')[0];
+        expect(todaySection).toContain('**追加課題**: <!-- この課題に関連して発生した新規課題があれば記載 -->');
+      });
+    });
+
+    describe('「その他」セクション', () => {
+      it('「その他」セクションが各担当者に表示される', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('#### 📌 その他');
+      });
+
+      it('「新たな課題」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        const otherSection = content.split('#### 📌 その他')[1].split('---')[0];
+        expect(otherSection).toContain('**新たな課題**: <!-- 朝会中に発生した新規課題があれば記載 -->');
+      });
+
+      it('「他連絡事項」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        const otherSection = content.split('#### 📌 その他')[1].split('---')[0];
+        expect(otherSection).toContain('**他連絡事項**: <!-- その他の連絡事項があれば記載 -->');
+      });
+
+      it('本日対応予定の課題がない担当者にも「その他」セクションが表示される', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        // 期限超過課題のみの担当者にも「その他」セクションが表示される
+        expect(content).toContain('#### 📌 その他');
+        expect(content).toContain('**新たな課題**: <!-- 朝会中に発生した新規課題があれば記載 -->');
+        expect(content).toContain('**他連絡事項**: <!-- その他の連絡事項があれば記載 -->');
+      });
+    });
+  });
 });
