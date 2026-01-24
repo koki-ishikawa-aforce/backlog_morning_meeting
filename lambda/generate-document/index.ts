@@ -162,6 +162,7 @@ async function generateMarkdownDocumentWithOpenAi(
     todayIssues: convertToSimpleFormat(todayIssues),
     incompleteIssues: convertToSimpleFormat(incompleteIssues),
     dueTodayIssues: convertToSimpleFormat(dueTodayIssues),
+    meetingNotes: generateMeetingNotesData(todayIssues, incompleteIssues, dueTodayIssues),
   };
 
   const system = [
@@ -183,6 +184,11 @@ async function generateMarkdownDocumentWithOpenAi(
     '- todayIssues: 本日対応予定の課題（担当者別にグループ化済み）',
     '- incompleteIssues: 期限超過・未完了の課題（担当者別にグループ化済み）',
     '- dueTodayIssues: 今日締め切りの課題（担当者別にグループ化済み）',
+    '- meetingNotes: 議事録セクション用データ（担当者ごと）',
+    '  - assigneeName: 担当者名',
+    '  - incomplete: 期限超過・未完了の課題（issueKey, summaryのみ）',
+    '  - today: 本日対応予定の課題（issueKey, summary, isDueToday）',
+    '    - isDueToday: trueの場合は今日締め切り',
     '※同じ課題が複数のリストに含まれる場合があります（仕様）',
     '',
     '【出力要件】',
@@ -199,7 +205,13 @@ async function generateMarkdownDocumentWithOpenAi(
     '- 各セクション内は担当者でグルーピングし、担当者ごとに表形式で出力（データは既にグループ化済み）',
     '- 表の列: 課題キー / 課題名 / ステータス / 開始日 / 期限日 / 優先度 / カテゴリ / URL',
     '- URL列は `[リンク](URL)` 形式',
-    '- `## 📝 議事録` を最後に追加し、全リストに含まれる担当者名ごとに見出し（###）とメモ欄を用意する',
+    '- `## 📝 議事録` を最後に追加。meetingNotesデータを使用して以下の形式で出力:',
+    '  - 担当者ごとに見出し（###）を作成',
+    '  - 各担当者の下に、該当課題があるセクションのみ追加:',
+    '    - `#### ⚠️ 期限超過・未完了`（incompleteから）',
+    '    - `#### 📅 本日対応予定`（todayから、isDueToday=trueなら「🔔（今日締め切り）」を付与）',
+    '  - 各課題は「- 課題キー: 課題名」形式（今日締め切りは「- 課題キー: 課題名 🔔（今日締め切り）」）',
+    '  - 各課題の下に「  <!-- メモ -->」を追加',
     '',
     '入力JSON:',
     JSON.stringify(input),
@@ -324,13 +336,8 @@ function generateMarkdownDocument(
     markdown += generateIssuesFromAssigneeGroups(dueTodayIssues);
   }
 
-  // 議事録セクション
-  markdown += `## 📝 議事録\n\n`;
-  for (const assignee of assigneeList) {
-    markdown += `### ${assignee}\n\n`;
-    markdown += `<!-- ここに${assignee}の議事録を記入してください -->\n\n`;
-    markdown += `---\n\n`;
-  }
+  // 議事録セクション（担当者ごと・セクションごと・課題ごとにメモ欄）
+  markdown += generateMeetingNotesSection(todayIssues, incompleteIssues, dueTodayIssues);
 
   const fileName = `${fileNameDateStr}_【${projectName}】朝会資料.md`;
 
@@ -400,6 +407,119 @@ function escapeMarkdown(text: string): string {
     .replace(/\|/g, '\\|')
     .replace(/\n/g, ' ')
     .trim();
+}
+
+function generateMeetingNotesSection(
+  todayIssues: IssuesByAssignee[],
+  incompleteIssues: IssuesByAssignee[],
+  dueTodayIssues: IssuesByAssignee[]
+): string {
+  // 今日締め切りの課題キーをSetで管理
+  const dueTodayKeys = new Set<string>();
+  for (const group of dueTodayIssues) {
+    for (const issue of group.issues) {
+      dueTodayKeys.add(issue.issueKey);
+    }
+  }
+
+  // 担当者ごとにデータを集約
+  const assigneeMap = new Map<string, {
+    incomplete: Issue[];
+    today: Issue[];
+  }>();
+
+  for (const group of incompleteIssues) {
+    if (!assigneeMap.has(group.assigneeName)) {
+      assigneeMap.set(group.assigneeName, { incomplete: [], today: [] });
+    }
+    assigneeMap.get(group.assigneeName)!.incomplete = group.issues;
+  }
+  for (const group of todayIssues) {
+    if (!assigneeMap.has(group.assigneeName)) {
+      assigneeMap.set(group.assigneeName, { incomplete: [], today: [] });
+    }
+    assigneeMap.get(group.assigneeName)!.today = group.issues;
+  }
+
+  let markdown = `## 📝 議事録\n\n`;
+  const assigneeNames = Array.from(assigneeMap.keys()).sort();
+
+  for (const assigneeName of assigneeNames) {
+    const data = assigneeMap.get(assigneeName)!;
+    markdown += `### ${assigneeName}\n\n`;
+
+    // 期限超過・未完了
+    if (data.incomplete.length > 0) {
+      markdown += `#### ⚠️ 期限超過・未完了\n`;
+      for (const issue of data.incomplete) {
+        markdown += `- ${issue.issueKey}: ${issue.summary}\n`;
+        markdown += `  <!-- メモ -->\n`;
+      }
+      markdown += `\n`;
+    }
+
+    // 本日対応予定（今日締め切りはマーク付き）
+    if (data.today.length > 0) {
+      markdown += `#### 📅 本日対応予定\n`;
+      for (const issue of data.today) {
+        const dueTodayMark = dueTodayKeys.has(issue.issueKey) ? ' 🔔（今日締め切り）' : '';
+        markdown += `- ${issue.issueKey}: ${issue.summary}${dueTodayMark}\n`;
+        markdown += `  <!-- メモ -->\n`;
+      }
+      markdown += `\n`;
+    }
+
+    markdown += `---\n\n`;
+  }
+
+  return markdown;
+}
+
+function generateMeetingNotesData(
+  todayIssues: IssuesByAssignee[],
+  incompleteIssues: IssuesByAssignee[],
+  dueTodayIssues: IssuesByAssignee[]
+): Array<{
+  assigneeName: string;
+  incomplete: Array<{ issueKey: string; summary: string }>;
+  today: Array<{ issueKey: string; summary: string; isDueToday: boolean }>;
+}> {
+  // 今日締め切りの課題キーをSetで管理
+  const dueTodayKeys = new Set<string>();
+  for (const group of dueTodayIssues) {
+    for (const issue of group.issues) {
+      dueTodayKeys.add(issue.issueKey);
+    }
+  }
+
+  const assigneeMap = new Map<string, {
+    incomplete: Array<{ issueKey: string; summary: string }>;
+    today: Array<{ issueKey: string; summary: string; isDueToday: boolean }>;
+  }>();
+
+  for (const group of incompleteIssues) {
+    if (!assigneeMap.has(group.assigneeName)) {
+      assigneeMap.set(group.assigneeName, { incomplete: [], today: [] });
+    }
+    assigneeMap.get(group.assigneeName)!.incomplete = group.issues.map(i => ({
+      issueKey: i.issueKey,
+      summary: i.summary,
+    }));
+  }
+  for (const group of todayIssues) {
+    if (!assigneeMap.has(group.assigneeName)) {
+      assigneeMap.set(group.assigneeName, { incomplete: [], today: [] });
+    }
+    assigneeMap.get(group.assigneeName)!.today = group.issues.map(i => ({
+      issueKey: i.issueKey,
+      summary: i.summary,
+      isDueToday: dueTodayKeys.has(i.issueKey),
+    }));
+  }
+
+  return Array.from(assigneeMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([assigneeName, data]) => ({ assigneeName, ...data }));
 }
 
 
