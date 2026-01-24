@@ -89,10 +89,10 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       },
     });
 
-    // Lambda関数: extract-mtg-participants（MTG課題から参加者を抽出）
-    const extractMtgParticipantsFn = new NodejsFunction(this, 'ExtractMtgParticipants', {
+    // Lambda関数: enrich-issues（MTG課題から参加者を抽出 + 期限超過課題から遅延情報を抽出）
+    const enrichIssuesFn = new NodejsFunction(this, 'EnrichIssues', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: path.join(__dirname, '../lambda/extract-mtg-participants/index.ts'),
+      entry: path.join(__dirname, '../lambda/enrich-issues/index.ts'),
       handler: 'handler',
       timeout: cdk.Duration.minutes(3),
       memorySize: 512,
@@ -107,7 +107,7 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       },
     });
 
-    openAiApiKeySecret.grantRead(extractMtgParticipantsFn);
+    openAiApiKeySecret.grantRead(enrichIssuesFn);
 
     // Lambda関数: generate-document（TypeScriptをデプロイ時にバンドル）
     const generateDocumentFn = new NodejsFunction(this, 'GenerateDocument', {
@@ -196,8 +196,8 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
-    const extractMtgParticipantsTask = new tasks.LambdaInvoke(this, 'ExtractMtgParticipantsTask', {
-      lambdaFunction: extractMtgParticipantsFn,
+    const enrichIssuesTask = new tasks.LambdaInvoke(this, 'EnrichIssuesTask', {
+      lambdaFunction: enrichIssuesFn,
       outputPath: '$.Payload',
     });
 
@@ -225,9 +225,9 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     notifyParallel.branch(sendEmailTask);
 
     // メインワークフロー（祝日でない場合に実行）
-    // FetchBacklogIssues → ExtractMtgParticipants → GenerateDocument → 並列通知
+    // FetchBacklogIssues → EnrichIssues → GenerateDocument → 並列通知
     const mainWorkflow = fetchTask
-      .next(extractMtgParticipantsTask)
+      .next(enrichIssuesTask)
       .next(generateTask)
       .next(notifyParallel);
 

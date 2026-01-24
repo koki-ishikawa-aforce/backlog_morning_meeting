@@ -1,5 +1,13 @@
 import type { Handler } from 'aws-lambda';
 
+// 遅延情報の型
+interface DelayInfo {
+  delayReason?: string;      // 遅延理由
+  ball?: string;             // ボール
+  nextAction?: string;       // 次のアクション
+  expectedCompletion?: string; // 完了見込み
+}
+
 interface Issue {
   id: number;
   issueKey: string;
@@ -29,6 +37,17 @@ interface Issue {
     projectKey: string;
     name: string;
   };
+  delayInfo?: DelayInfo;
+}
+
+// 他者待ちの遅延理由
+const WAITING_REASONS = ['社内待ち', '顧客待ち'];
+
+// 課題が要対応かどうかを判定
+function isActionRequired(issue: Issue): boolean {
+  const reason = issue.delayInfo?.delayReason;
+  if (!reason) return true; // 未設定は要対応
+  return !WAITING_REASONS.includes(reason);
 }
 
 interface IssuesByAssignee {
@@ -264,15 +283,33 @@ function generateMeetingNotesSection(
     const data = assigneeMap.get(assigneeName)!;
     markdown += `### ${assigneeName}\n\n`;
 
-    // 期限超過・未完了
-    if (data.incomplete.length > 0) {
-      markdown += `#### ⚠️ 期限超過・未完了\n`;
-      for (const issue of data.incomplete) {
+    // 期限超過・未完了を分類
+    const actionRequired = data.incomplete.filter(isActionRequired);
+    const waiting = data.incomplete.filter(issue => !isActionRequired(issue));
+
+    // 要対応セクション
+    if (actionRequired.length > 0) {
+      markdown += `#### ⚠️ 期限超過・未完了（要対応）\n`;
+      for (const issue of actionRequired) {
+        const info = issue.delayInfo || {};
         markdown += `- ${issue.issueKey}: ${issue.summary}\n`;
-        markdown += `  - **遅延理由**: <!-- 自責/社内待ち/顧客待ち/仕様変更/割り込み対応 -->\n`;
-        markdown += `  - **ボール**: <!-- 自分/社内（誰）/顧客 -->\n`;
-        markdown += `  - **次のアクション**: <!-- -->\n`;
-        markdown += `  - **完了見込み**: <!-- -->\n`;
+        markdown += `  - **遅延理由**: ${info.delayReason || '<!-- 自責/社内待ち/顧客待ち/仕様変更/割り込み対応 -->'}\n`;
+        markdown += `  - **ボール**: ${info.ball || '<!-- 自分/社内（誰）/顧客 -->'}\n`;
+        markdown += `  - **次のアクション**: ${info.nextAction || '<!-- -->'}\n`;
+        markdown += `  - **完了見込み**: ${info.expectedCompletion || '<!-- -->'}\n`;
+      }
+      markdown += `\n`;
+    }
+
+    // 他者待ちセクション
+    if (waiting.length > 0) {
+      markdown += `#### 🚧 期限超過・未完了（他者待ち）\n`;
+      for (const issue of waiting) {
+        const info = issue.delayInfo || {};
+        markdown += `- ${issue.issueKey}: ${issue.summary}\n`;
+        markdown += `  - **遅延理由**: ${info.delayReason}\n`;
+        markdown += `  - **ボール**: ${info.ball || '<!-- 自分/社内（誰）/顧客 -->'}\n`;
+        markdown += `  - **状況**: <!-- -->\n`;
       }
       markdown += `\n`;
     }

@@ -77,7 +77,9 @@ AWS SDKのモックには`aws-sdk-client-mock`を使用。
 
 ## Rules
 
-詳細な規約は以下を参照：
+開発ルールは `.claude/rules/` に定義済み（自動読み込み）。
+
+詳細ドキュメント:
 - コーディング規約: docs/coding-standards.md
 - コミット規約: docs/commit-conventions.md
 - TDD開発フロー: docs/tdd-guidelines.md

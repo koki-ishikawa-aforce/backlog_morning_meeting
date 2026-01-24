@@ -579,8 +579,8 @@ describe('generate-document', () => {
       ...overrides,
     });
 
-    describe('期限超過・未完了課題のメモ欄', () => {
-      it('「遅延理由」テンプレートが含まれる', async () => {
+    describe('期限超過・未完了課題（要対応）のメモ欄', () => {
+      it('「遅延理由」テンプレートが含まれる（delayInfoがない場合）', async () => {
         const mockEvent = {
           projects: [
             {
@@ -599,7 +599,7 @@ describe('generate-document', () => {
         expect(result.documents[0].content).toContain('**遅延理由**: <!-- 自責/社内待ち/顧客待ち/仕様変更/割り込み対応 -->');
       });
 
-      it('「ボール」テンプレートが含まれる', async () => {
+      it('「ボール」テンプレートが含まれる（delayInfoがない場合）', async () => {
         const mockEvent = {
           projects: [
             {
@@ -618,7 +618,7 @@ describe('generate-document', () => {
         expect(result.documents[0].content).toContain('**ボール**: <!-- 自分/社内（誰）/顧客 -->');
       });
 
-      it('「次のアクション」テンプレートが含まれる', async () => {
+      it('「次のアクション」テンプレートが含まれる（delayInfoがない場合）', async () => {
         const mockEvent = {
           projects: [
             {
@@ -637,7 +637,7 @@ describe('generate-document', () => {
         expect(result.documents[0].content).toContain('**次のアクション**: <!-- -->');
       });
 
-      it('「完了見込み」テンプレートが含まれる', async () => {
+      it('「完了見込み」テンプレートが含まれる（delayInfoがない場合）', async () => {
         const mockEvent = {
           projects: [
             {
@@ -766,8 +766,8 @@ describe('generate-document', () => {
         const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
         const content = result.documents[0].content;
 
-        // 期限超過セクションのテンプレート
-        const incompleteSection = content.split('#### ⚠️ 期限超過・未完了')[1].split('#### 📅 本日対応予定')[0];
+        // 期限超過セクションのテンプレート（要対応）
+        const incompleteSection = content.split('#### ⚠️ 期限超過・未完了（要対応）')[1].split('#### 📅 本日対応予定')[0];
         expect(incompleteSection).toContain('**遅延理由**:');
         expect(incompleteSection).toContain('**次のアクション**:');
         expect(incompleteSection).toContain('**完了見込み**:');
@@ -776,6 +776,275 @@ describe('generate-document', () => {
         const todaySection = content.split('#### 📅 本日対応予定')[1].split('---')[0];
         expect(todaySection).toContain('**進捗**:');
         expect(todaySection).toContain('**状況**:');
+      });
+    });
+  });
+
+  describe('遅延情報による分類表示', () => {
+    const createTestIssue = (overrides: any = {}) => ({
+      id: 1,
+      issueKey: 'PROJECT1-1',
+      summary: 'テスト課題',
+      description: '',
+      status: { id: 1, name: '未対応' },
+      assignee: { id: 1, name: 'Test User' },
+      dueDate: '2024-01-20',
+      startDate: '2024-01-15',
+      priority: { id: 1, name: '中' },
+      category: [],
+      url: 'https://example.com/view/PROJECT1-1',
+      project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+      ...overrides,
+    });
+
+    describe('分類ロジック', () => {
+      it('delayInfoがない課題は「要対応」に分類される', async () => {
+        const issueWithoutDelayInfo = createTestIssue({ issueKey: 'PROJECT1-1' });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithoutDelayInfo] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('#### ⚠️ 期限超過・未完了（要対応）');
+        expect(content).toContain('PROJECT1-1: テスト課題');
+      });
+
+      it('遅延理由が「自責」の課題は「要対応」に分類される', async () => {
+        const issueWithSelfReason = createTestIssue({
+          issueKey: 'PROJECT1-1',
+          delayInfo: { delayReason: '自責', ball: '自分' },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithSelfReason] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('#### ⚠️ 期限超過・未完了（要対応）');
+        expect(content).toContain('PROJECT1-1: テスト課題');
+        expect(content).toContain('**遅延理由**: 自責');
+      });
+
+      it('遅延理由が「顧客待ち」の課題は「他者待ち」に分類される', async () => {
+        const issueWithCustomerWait = createTestIssue({
+          issueKey: 'PROJECT1-2',
+          summary: '顧客待ち課題',
+          delayInfo: { delayReason: '顧客待ち', ball: '顧客' },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithCustomerWait] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('#### 🚧 期限超過・未完了（他者待ち）');
+        expect(content).toContain('PROJECT1-2: 顧客待ち課題');
+        expect(content).toContain('**遅延理由**: 顧客待ち');
+      });
+
+      it('遅延理由が「社内待ち」の課題は「他者待ち」に分類される', async () => {
+        const issueWithInternalWait = createTestIssue({
+          issueKey: 'PROJECT1-3',
+          summary: '社内待ち課題',
+          delayInfo: { delayReason: '社内待ち', ball: '社内（山田さん）' },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithInternalWait] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('#### 🚧 期限超過・未完了（他者待ち）');
+        expect(content).toContain('PROJECT1-3: 社内待ち課題');
+        expect(content).toContain('**遅延理由**: 社内待ち');
+      });
+
+      it('要対応と他者待ちの課題が混在する場合、両方のセクションが表示される', async () => {
+        const actionRequiredIssue = createTestIssue({
+          issueKey: 'PROJECT1-1',
+          summary: '要対応課題',
+          delayInfo: { delayReason: '自責', ball: '自分', nextAction: '明日対応', expectedCompletion: '1/25' },
+        });
+        const waitingIssue = createTestIssue({
+          issueKey: 'PROJECT1-2',
+          summary: '他者待ち課題',
+          delayInfo: { delayReason: '顧客待ち', ball: '顧客' },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [actionRequiredIssue, waitingIssue] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        // 両セクションが存在
+        expect(content).toContain('#### ⚠️ 期限超過・未完了（要対応）');
+        expect(content).toContain('#### 🚧 期限超過・未完了（他者待ち）');
+
+        // 要対応セクション
+        const actionSection = content.split('#### ⚠️ 期限超過・未完了（要対応）')[1].split('#### 🚧 期限超過・未完了（他者待ち）')[0];
+        expect(actionSection).toContain('PROJECT1-1: 要対応課題');
+        expect(actionSection).toContain('**次のアクション**: 明日対応');
+        expect(actionSection).toContain('**完了見込み**: 1/25');
+
+        // 他者待ちセクション
+        const waitSection = content.split('#### 🚧 期限超過・未完了（他者待ち）')[1].split('#### 📅 本日対応予定')[0];
+        expect(waitSection).toContain('PROJECT1-2: 他者待ち課題');
+        expect(waitSection).toContain('**状況**: <!-- -->');
+      });
+    });
+
+    describe('delayInfo表示', () => {
+      it('抽出されたdelayInfoの値がテンプレートの代わりに表示される', async () => {
+        const issueWithFullDelayInfo = createTestIssue({
+          issueKey: 'PROJECT1-1',
+          delayInfo: {
+            delayReason: '仕様変更',
+            ball: '自分',
+            nextAction: 'テスト実装',
+            expectedCompletion: '1/30',
+          },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithFullDelayInfo] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('**遅延理由**: 仕様変更');
+        expect(content).toContain('**ボール**: 自分');
+        expect(content).toContain('**次のアクション**: テスト実装');
+        expect(content).toContain('**完了見込み**: 1/30');
+      });
+
+      it('delayInfoの一部のみが設定されている場合、未設定項目はテンプレートになる', async () => {
+        const issueWithPartialDelayInfo = createTestIssue({
+          issueKey: 'PROJECT1-1',
+          delayInfo: {
+            delayReason: '割り込み対応',
+          },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [issueWithPartialDelayInfo] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        expect(content).toContain('**遅延理由**: 割り込み対応');
+        expect(content).toContain('**ボール**: <!-- 自分/社内（誰）/顧客 -->');
+        expect(content).toContain('**次のアクション**: <!-- -->');
+        expect(content).toContain('**完了見込み**: <!-- -->');
+      });
+
+      it('他者待ち課題は「状況」欄がテンプレートとして表示される', async () => {
+        const waitingIssue = createTestIssue({
+          issueKey: 'PROJECT1-1',
+          delayInfo: {
+            delayReason: '顧客待ち',
+            ball: '顧客（田中様）',
+          },
+        });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [waitingIssue] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        const waitSection = content.split('#### 🚧 期限超過・未完了（他者待ち）')[1];
+        expect(waitSection).toContain('**遅延理由**: 顧客待ち');
+        expect(waitSection).toContain('**ボール**: 顧客（田中様）');
+        expect(waitSection).toContain('**状況**: <!-- -->');
+        // 他者待ちセクションには「次のアクション」「完了見込み」は表示されない
+        expect(waitSection).not.toContain('**次のアクション**');
+        expect(waitSection).not.toContain('**完了見込み**');
       });
     });
   });

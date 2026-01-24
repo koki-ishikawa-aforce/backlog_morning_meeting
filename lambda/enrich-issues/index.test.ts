@@ -15,7 +15,7 @@ jest.mock('https', () => {
 
 import * as https from 'https';
 
-describe('extract-mtg-participants', () => {
+describe('enrich-issues', () => {
   beforeEach(() => {
     secretsManagerMock.reset();
     jest.clearAllMocks();
@@ -433,6 +433,312 @@ describe('extract-mtg-participants', () => {
       // OpenAI APIは呼び出されない
       expect(mockRequest).not.toHaveBeenCalled();
       expect(result.projects[0].mtgIssues).toEqual([]);
+    });
+  });
+
+  describe('遅延情報抽出', () => {
+    // テスト用の課題データを生成するヘルパー
+    const createIncompleteIssue = (overrides: any = {}) => ({
+      id: 1,
+      issueKey: 'PROJECT1-1',
+      summary: '期限超過課題',
+      description: '## 遅延理由\n自責\n\n## ボール\n自分\n\n## 次のアクション\n明日レビュー依頼\n\n## 完了見込み\n1/25',
+      status: { id: 1, name: '未対応' },
+      assignee: { id: 1, name: 'Test User' },
+      dueDate: '2024-01-20',
+      startDate: '2024-01-15',
+      priority: { id: 1, name: '中' },
+      category: [],
+      url: 'https://example.com/view/PROJECT1-1',
+      project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+      ...overrides,
+    });
+
+    it('期限超過課題のdescriptionから遅延情報を抽出できる', async () => {
+      setupSecretsMock();
+      setupOpenAiMock({
+        delayReason: '自責',
+        ball: '自分',
+        nextAction: '明日レビュー依頼',
+        expectedCompletion: '1/25',
+      });
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue()],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [{ id: 1, name: 'Test User' }],
+          },
+        ],
+        activeAssigneeIds: [1],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toEqual({
+        delayReason: '自責',
+        ball: '自分',
+        nextAction: '明日レビュー依頼',
+        expectedCompletion: '1/25',
+      });
+    });
+
+    it('遅延理由「顧客待ち」を正しく抽出できる', async () => {
+      setupSecretsMock();
+      setupOpenAiMock({
+        delayReason: '顧客待ち',
+        ball: '顧客',
+        nextAction: null,
+        expectedCompletion: null,
+      });
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue({
+                  description: '顧客からの回答待ち',
+                })],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toEqual({
+        delayReason: '顧客待ち',
+        ball: '顧客',
+      });
+    });
+
+    it('遅延理由「社内待ち」を正しく抽出できる', async () => {
+      setupSecretsMock();
+      setupOpenAiMock({
+        delayReason: '社内待ち',
+        ball: '社内（山田さん）',
+        nextAction: 'レビュー待ち',
+        expectedCompletion: null,
+      });
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue({
+                  description: '山田さんのレビュー待ち',
+                })],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toEqual({
+        delayReason: '社内待ち',
+        ball: '社内（山田さん）',
+        nextAction: 'レビュー待ち',
+      });
+    });
+
+    it('descriptionが空の場合、delayInfoはundefinedになる', async () => {
+      setupSecretsMock();
+      const mockRequest = https.request as jest.Mock;
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue({ description: '' })],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      // descriptionが空の場合はAPI呼び出しをスキップ
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toBeUndefined();
+    });
+
+    it('OpenAI APIがエラーを返した場合、delayInfoはundefinedになる', async () => {
+      setupSecretsMock();
+      setupOpenAiErrorMock();
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue()],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toBeUndefined();
+    });
+
+    it('遅延情報がすべてnullの場合、delayInfoはundefinedになる', async () => {
+      setupSecretsMock();
+      setupOpenAiMock({
+        delayReason: null,
+        ball: null,
+        nextAction: null,
+        expectedCompletion: null,
+      });
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue({ description: '遅延情報なし' })],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toBeUndefined();
+    });
+
+    it('複数の期限超過課題の遅延情報を並列で抽出できる', async () => {
+      setupSecretsMock();
+      setupOpenAiMock({
+        delayReason: '自責',
+        ball: '自分',
+        nextAction: '対応中',
+        expectedCompletion: '明日',
+      });
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [
+                  createIncompleteIssue({ issueKey: 'PROJECT1-1' }),
+                  createIncompleteIssue({ issueKey: 'PROJECT1-2' }),
+                ],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues).toHaveLength(2);
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toBeDefined();
+      expect(result.projects[0].incompleteIssues[0].issues[1].delayInfo).toBeDefined();
+    });
+
+    it('OpenAI API Keyがない場合、delayInfoはundefinedになる', async () => {
+      // API Keyの取得失敗をシミュレート
+      secretsManagerMock.on(GetSecretValueCommand).rejects(new Error('Secret not found'));
+
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [
+              {
+                assigneeName: 'Test User',
+                assigneeId: 1,
+                issues: [createIncompleteIssue()],
+              },
+            ],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.projects[0].incompleteIssues[0].issues[0].delayInfo).toBeUndefined();
     });
   });
 });
