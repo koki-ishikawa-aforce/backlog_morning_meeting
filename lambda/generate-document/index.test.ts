@@ -321,4 +321,244 @@ describe('generate-document', () => {
       expect(result.documents[0].content).not.toContain('この説明文は出力されないはず');
     });
   });
+
+  describe('MTGセクション', () => {
+    // テスト用のMTG課題データを生成するヘルパー
+    const createMtgIssue = (overrides: any = {}) => ({
+      issueKey: 'PROJECT1-100',
+      summary: '進捗確認MTG',
+      description: '参加者情報など',
+      url: 'https://example.backlog.com/view/PROJECT1-100',
+      startDate: '2026-01-24',
+      dueDate: '2026-01-24',
+      purpose: 'プロジェクト進捗確認',
+      datetime: '14:00〜15:00',
+      internalParticipants: ['山田太郎', '鈴木花子'],
+      externalParticipants: ['田中様（ABC株式会社）'],
+      mtgUrl: 'https://zoom.us/j/123456789',
+      ...overrides,
+    });
+
+    it('「本日のミーティング予定」セクションが生成される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue()],
+            backlogUsers: [{ id: 1, name: '山田太郎' }],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('### 📅 本日のミーティング予定');
+    });
+
+    it('MTGの目的が表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ purpose: 'Q1振り返りと計画策定' })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**目的**: Q1振り返りと計画策定');
+    });
+
+    it('MTGの開催日時が表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ datetime: '2026-01-24 14:00〜15:00' })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**開催日時**: 2026-01-24 14:00〜15:00');
+    });
+
+    it('自社参加者が表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ internalParticipants: ['山田太郎', '鈴木花子', '佐藤次郎'] })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**自社参加者**: 山田太郎、鈴木花子、佐藤次郎');
+    });
+
+    it('外部参加者が表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ externalParticipants: ['田中様（ABC株式会社）', '佐々木様'] })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**外部参加者**: 田中様（ABC株式会社）、佐々木様');
+    });
+
+    it('MTG URLが表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ mtgUrl: 'https://zoom.us/j/987654321' })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**MTG URL**: [リンク](https://zoom.us/j/987654321)');
+    });
+
+    it('課題URLが表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({ url: 'https://example.backlog.com/view/PROJECT1-100' })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('**課題URL**: [リンク](https://example.backlog.com/view/PROJECT1-100)');
+    });
+
+    it('MTG課題が0件の場合、MTGセクションは表示されない', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).not.toContain('本日のミーティング予定');
+    });
+
+    it('一部の情報が欠けている場合でも正しく表示される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue({
+              purpose: undefined,
+              datetime: undefined,
+              mtgUrl: undefined,
+              internalParticipants: [],
+              externalParticipants: [],
+            })],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      // エラーにならずにドキュメントが生成される
+      expect(result.documents[0].content).toContain('### 📅 本日のミーティング予定');
+      expect(result.documents[0].content).toContain('#### 進捗確認MTG');
+      // 情報がない項目は表示されない
+      expect(result.documents[0].content).not.toContain('**目的**:');
+      expect(result.documents[0].content).not.toContain('**開催日時**:');
+      expect(result.documents[0].content).not.toContain('**MTG URL**:');
+    });
+
+    it('メモ欄が各MTGに追加される', async () => {
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+            mtgIssues: [createMtgIssue()],
+            backlogUsers: [],
+          },
+        ],
+        activeAssigneeIds: [],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).toContain('<!-- メモ -->');
+    });
+  });
 });

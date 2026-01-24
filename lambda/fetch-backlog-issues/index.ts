@@ -56,12 +56,26 @@ interface BacklogStatus {
     name: string;
 }
 
+interface BacklogIssueType {
+    id: number;
+    name: string;
+}
+
+interface BacklogUser {
+    id: number;
+    name: string;
+}
+
 interface Issue {
     id: number;
     issueKey: string;
     summary: string;
     description: string;
     status: {
+        id: number;
+        name: string;
+    };
+    issueType?: {
         id: number;
         name: string;
     };
@@ -87,6 +101,15 @@ interface Issue {
     };
 }
 
+interface MtgIssue {
+    issueKey: string;
+    summary: string;
+    description: string;
+    url: string;
+    dueDate?: string;
+    startDate?: string;
+}
+
 interface IssuesByAssignee {
     assigneeName: string;
     assigneeId?: number;
@@ -100,6 +123,8 @@ interface LambdaResponse {
         todayIssues: IssuesByAssignee[];
         incompleteIssues: IssuesByAssignee[];
         dueTodayIssues: IssuesByAssignee[];
+        mtgIssues: MtgIssue[];
+        backlogUsers: BacklogUser[];
     }>;
     activeAssigneeIds: number[];
 }
@@ -161,6 +186,8 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
             todayIssues: IssuesByAssignee[];
             incompleteIssues: IssuesByAssignee[];
             dueTodayIssues: IssuesByAssignee[];
+            mtgIssues: MtgIssue[];
+            backlogUsers: BacklogUser[];
         }> = [];
 
         for (const projectKey of projectKeys) {
@@ -175,6 +202,14 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                 const incompleteStatusIds = statuses
                     .filter(s => s.name !== '完了' && s.name !== 'クローズ' && s.name !== 'Closed')
                     .map(s => s.id);
+
+                // プロジェクトの種別一覧を取得（MTG種別のIDを特定するため）
+                const issueTypes = await getProjectIssueTypes(trimmedKey, credentials);
+                const mtgIssueType = issueTypes.find(t => t.name === 'MTG');
+                const mtgIssueTypeId = mtgIssueType?.id;
+
+                // プロジェクトのユーザー一覧を取得
+                const backlogUsers = await getProjectUsers(trimmedKey, credentials);
 
                 // 本日対応予定の課題（開始日から期限日の期間に今日が含まれる課題）
                 // より広範囲に課題を取得してからフィルタリング（確実性を重視）
@@ -254,6 +289,54 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     statusId: incompleteStatusIds,
                 }, credentials);
 
+                // MTG課題を取得（MTG種別が存在する場合のみ）
+                let mtgIssues: MtgIssue[] = [];
+                if (mtgIssueTypeId) {
+                    const mtgIssuesRaw = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
+                        startDateSince: past30Days,
+                        startDateUntil: future30Days,
+                        statusId: incompleteStatusIds,
+                        issueTypeId: [mtgIssueTypeId],
+                    }, credentials);
+
+                    // 本日対応予定の条件でフィルタリング
+                    const filteredMtgIssues = mtgIssuesRaw.filter(issue => {
+                        const todayStr = today;
+                        if (issue.startDate && issue.dueDate) {
+                            const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+                            const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                            if (startDateStr > todayStr) return false;
+                            return startDateStr <= todayStr && dueDateStr >= todayStr;
+                        }
+                        if (issue.startDate && !issue.dueDate) {
+                            const startDateStr = new Date(issue.startDate).toISOString().split('T')[0];
+                            if (startDateStr > todayStr) return false;
+                            return startDateStr <= todayStr;
+                        }
+                        if (!issue.startDate && issue.dueDate) {
+                            const dueDateStr = new Date(issue.dueDate).toISOString().split('T')[0];
+                            return dueDateStr >= todayStr;
+                        }
+                        return false;
+                    });
+
+                    // MtgIssue形式に変換（担当者フィルタリングは適用しない）
+                    mtgIssues = filteredMtgIssues.map(issue => ({
+                        issueKey: issue.issueKey,
+                        summary: issue.summary,
+                        description: issue.description,
+                        url: issue.url,
+                        dueDate: issue.dueDate,
+                        startDate: issue.startDate,
+                    }));
+                }
+
+                // MTG種別を除外するフィルタ関数
+                const excludeMtgIssues = (issues: Issue[]) =>
+                    mtgIssueTypeId
+                        ? issues.filter(issue => issue.issueType?.id !== mtgIssueTypeId)
+                        : issues;
+
                 // 担当者フィルタリング関数
                 const filterByAssignee = (issues: Issue[]) =>
                     activeAssigneeIds.length > 0
@@ -262,9 +345,10 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                         )
                         : issues;
 
-                const filteredTodayIssues = filterByAssignee(todayIssues);
-                const filteredIncompleteIssues = filterByAssignee(incompleteIssues);
-                const filteredDueTodayIssues = filterByAssignee(dueTodayIssues);
+                // MTG除外 → 担当者フィルタリングの順で適用
+                const filteredTodayIssues = filterByAssignee(excludeMtgIssues(todayIssues));
+                const filteredIncompleteIssues = filterByAssignee(excludeMtgIssues(incompleteIssues));
+                const filteredDueTodayIssues = filterByAssignee(excludeMtgIssues(dueTodayIssues));
 
                 // 各リストを個別に担当者フィルタリング・グループ化（リスト間の重複は許可）
                 projects.push({
@@ -273,6 +357,8 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     todayIssues: groupIssuesByAssignee(filteredTodayIssues),
                     incompleteIssues: groupIssuesByAssignee(filteredIncompleteIssues),
                     dueTodayIssues: groupIssuesByAssignee(filteredDueTodayIssues),
+                    mtgIssues,
+                    backlogUsers,
                 });
             } catch (error) {
                 console.error(`プロジェクト ${trimmedKey} の課題取得に失敗:`, error);
@@ -283,6 +369,8 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     todayIssues: [],
                     incompleteIssues: [],
                     dueTodayIssues: [],
+                    mtgIssues: [],
+                    backlogUsers: [],
                 });
             }
         }
@@ -430,6 +518,22 @@ async function getProjectStatuses(
     return callBacklogApi<BacklogStatus[]>(`/projects/${projectKey}/statuses`, credentials);
 }
 
+// プロジェクトの種別一覧を取得
+async function getProjectIssueTypes(
+    projectKey: string,
+    credentials: BacklogCredentials
+): Promise<BacklogIssueType[]> {
+    return callBacklogApi<BacklogIssueType[]>(`/projects/${projectKey}/issueTypes`, credentials);
+}
+
+// プロジェクトのユーザー一覧を取得
+async function getProjectUsers(
+    projectKey: string,
+    credentials: BacklogCredentials
+): Promise<BacklogUser[]> {
+    return callBacklogApi<BacklogUser[]>(`/projects/${projectKey}/users`, credentials);
+}
+
 // 課題一覧を取得
 async function fetchIssuesFromBacklog(
     projectKey: string,
@@ -440,6 +544,7 @@ async function fetchIssuesFromBacklog(
         dueDateSince?: string;
         dueDateUntil?: string;
         statusId?: number[];
+        issueTypeId?: number[];
     },
     credentials: BacklogCredentials
 ): Promise<Issue[]> {
@@ -463,6 +568,9 @@ async function fetchIssuesFromBacklog(
     if (filters.statusId && filters.statusId.length > 0) {
         filters.statusId.forEach(id => params.append('statusId[]', id.toString()));
     }
+    if (filters.issueTypeId && filters.issueTypeId.length > 0) {
+        filters.issueTypeId.forEach(id => params.append('issueTypeId[]', id.toString()));
+    }
 
     const path = `/issues?${params.toString()}`;
     const apiIssues = await callBacklogApi<BacklogApiIssue[]>(path, credentials);
@@ -476,6 +584,7 @@ async function fetchIssuesFromBacklog(
         summary: issue.summary,
         description: issue.description || '',
         status: issue.status,
+        issueType: issue.issueType,
         assignee: issue.assignee,
         dueDate: issue.dueDate,
         startDate: issue.startDate,

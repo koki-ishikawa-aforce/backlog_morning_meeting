@@ -37,12 +37,33 @@ interface IssuesByAssignee {
   issues: Issue[];
 }
 
+interface BacklogUser {
+  id: number;
+  name: string;
+}
+
+interface MtgIssue {
+  issueKey: string;
+  summary: string;
+  description: string;
+  url: string;
+  dueDate?: string;
+  startDate?: string;
+  purpose?: string;
+  datetime?: string;
+  internalParticipants: string[];
+  externalParticipants: string[];
+  mtgUrl?: string;
+}
+
 interface ProjectData {
   projectKey: string;
   projectName: string;
   todayIssues: IssuesByAssignee[];
   incompleteIssues: IssuesByAssignee[];
   dueTodayIssues: IssuesByAssignee[];
+  mtgIssues?: MtgIssue[];
+  backlogUsers?: BacklogUser[];
 }
 
 interface LambdaEvent {
@@ -95,7 +116,7 @@ function generateMarkdownDocument(
   timeStr: string,
   fileNameDateStr: string
 ): Document {
-  const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues } = project;
+  const { projectKey, projectName, todayIssues, incompleteIssues, dueTodayIssues, mtgIssues } = project;
 
   // 課題数を計算（担当者グループから合計）
   const countIssues = (groups: IssuesByAssignee[]) =>
@@ -139,7 +160,7 @@ function generateMarkdownDocument(
   }
 
   // 議事録セクション（担当者ごと・セクションごと・課題ごとにメモ欄）
-  markdown += generateMeetingNotesSection(todayIssues, incompleteIssues, dueTodayIssues);
+  markdown += generateMeetingNotesSection(todayIssues, incompleteIssues, dueTodayIssues, mtgIssues || []);
 
   const fileName = `${fileNameDateStr}_【${projectName}】朝会資料.md`;
 
@@ -206,7 +227,8 @@ function escapeMarkdown(text: string): string {
 function generateMeetingNotesSection(
   todayIssues: IssuesByAssignee[],
   incompleteIssues: IssuesByAssignee[],
-  dueTodayIssues: IssuesByAssignee[]
+  dueTodayIssues: IssuesByAssignee[],
+  mtgIssues: MtgIssue[]
 ): string {
   // 今日締め切りの課題キーをSetで管理
   const dueTodayKeys = new Set<string>();
@@ -264,6 +286,40 @@ function generateMeetingNotesSection(
     }
 
     markdown += `---\n\n`;
+  }
+
+  // 本日のミーティング予定セクション
+  if (mtgIssues.length > 0) {
+    markdown += `### 📅 本日のミーティング予定\n\n`;
+    markdown += generateMtgSection(mtgIssues);
+  }
+
+  return markdown;
+}
+
+function generateMtgSection(mtgIssues: MtgIssue[]): string {
+  let markdown = '';
+
+  for (const mtg of mtgIssues) {
+    markdown += `#### ${mtg.summary}\n\n`;
+
+    if (mtg.purpose) {
+      markdown += `- **目的**: ${mtg.purpose}\n`;
+    }
+    if (mtg.datetime) {
+      markdown += `- **開催日時**: ${mtg.datetime}\n`;
+    }
+    if (mtg.internalParticipants && mtg.internalParticipants.length > 0) {
+      markdown += `- **自社参加者**: ${mtg.internalParticipants.join('、')}\n`;
+    }
+    if (mtg.externalParticipants && mtg.externalParticipants.length > 0) {
+      markdown += `- **外部参加者**: ${mtg.externalParticipants.join('、')}\n`;
+    }
+    if (mtg.mtgUrl) {
+      markdown += `- **MTG URL**: [リンク](${mtg.mtgUrl})\n`;
+    }
+    markdown += `- **課題URL**: [リンク](${mtg.url})\n`;
+    markdown += `<!-- メモ -->\n\n`;
   }
 
   return markdown;

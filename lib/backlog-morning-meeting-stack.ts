@@ -89,6 +89,26 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       },
     });
 
+    // Lambda関数: extract-mtg-participants（MTG課題から参加者を抽出）
+    const extractMtgParticipantsFn = new NodejsFunction(this, 'ExtractMtgParticipants', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: path.join(__dirname, '../lambda/extract-mtg-participants/index.ts'),
+      handler: 'handler',
+      timeout: cdk.Duration.minutes(3),
+      memorySize: 512,
+      environment: {
+        OPENAI_API_KEY_SECRET_NAME: openAiApiKeySecret.secretName,
+        OPENAI_MODEL: 'gpt-3.5-turbo',
+      },
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
+      },
+    });
+
+    openAiApiKeySecret.grantRead(extractMtgParticipantsFn);
+
     // Lambda関数: generate-document（TypeScriptをデプロイ時にバンドル）
     const generateDocumentFn = new NodejsFunction(this, 'GenerateDocument', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -176,6 +196,11 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
+    const extractMtgParticipantsTask = new tasks.LambdaInvoke(this, 'ExtractMtgParticipantsTask', {
+      lambdaFunction: extractMtgParticipantsFn,
+      outputPath: '$.Payload',
+    });
+
     const generateTask = new tasks.LambdaInvoke(this, 'GenerateDocumentTask', {
       lambdaFunction: generateDocumentFn,
       outputPath: '$.Payload',
@@ -200,7 +225,9 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     notifyParallel.branch(sendEmailTask);
 
     // メインワークフロー（祝日でない場合に実行）
+    // FetchBacklogIssues → ExtractMtgParticipants → GenerateDocument → 並列通知
     const mainWorkflow = fetchTask
+      .next(extractMtgParticipantsTask)
       .next(generateTask)
       .next(notifyParallel);
 

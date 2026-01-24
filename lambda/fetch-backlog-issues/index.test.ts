@@ -83,12 +83,20 @@ describe('fetch-backlog-issues', () => {
             if (event === 'data') {
               setTimeout(() => {
                 // プロジェクト情報取得
-                if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                   handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                 }
                 // ステータス一覧取得
                 else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                   handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                }
+                // 種別一覧取得
+                else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                  handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                }
+                // ユーザー一覧取得
+                else if (options.path?.includes('/projects/PROJECT1/users')) {
+                  handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                 }
                 // 課題一覧取得（本日対応予定、期限超過、今日締め切りの各クエリに対応）
                 else if (options.path?.includes('/issues')) {
@@ -205,10 +213,14 @@ describe('fetch-backlog-issues', () => {
           on: jest.fn((event: string, handler: any) => {
             if (event === 'data') {
               setTimeout(() => {
-                if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                   handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                 } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                   handler(JSON.stringify([{ id: 1, name: '未対応' }]));
+                } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                  handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                  handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                 } else if (options.path?.includes('/issues')) {
                   handler(JSON.stringify([]));
                 }
@@ -294,10 +306,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 開始日または期限日のクエリで返す課題
                     const issue = {
@@ -341,10 +357,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -387,10 +407,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -433,10 +457,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -479,10 +507,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -525,10 +557,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -570,10 +606,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -615,10 +655,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -660,10 +704,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -705,10 +753,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -756,10 +808,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 今日締め切りのクエリ（dueDateSince: today, dueDateUntil: today）の場合
                     if (options.path?.includes('dueDateSince=' + today) && options.path?.includes('dueDateUntil=' + today)) {
@@ -805,10 +861,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -839,10 +899,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -873,10 +937,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -914,10 +982,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 期限超過の課題のクエリ（dueDateUntil: yesterday）の場合
                     if (options.path?.includes('dueDateUntil=' + yesterday)) {
@@ -964,10 +1036,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     if (options.path?.includes('dueDateUntil=' + yesterday)) {
                       const issue = {
@@ -1012,10 +1088,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -1046,10 +1126,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -1080,10 +1164,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 完了ステータスは未完了ステータスIDでフィルタリングされるため、返されない
                     handler(JSON.stringify([]));
@@ -1115,10 +1203,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     handler(JSON.stringify([]));
                   }
@@ -1157,10 +1249,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 開始日のクエリ（startDateSince: past30Days, startDateUntil: future30Days）の場合
                     if (options.path?.includes('startDateSince=' + past30Days) && options.path?.includes('startDateUntil=' + future30Days)) {
@@ -1211,10 +1307,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     if (options.path?.includes('startDateSince=' + past30Days) && options.path?.includes('startDateUntil=' + future30Days)) {
                       const issue = {
@@ -1264,10 +1364,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 期限日のクエリ（dueDateSince: past30Days, dueDateUntil: future30Days）の場合
                     if (options.path?.includes('dueDateSince=' + past30Days) && options.path?.includes('dueDateUntil=' + future30Days)) {
@@ -1318,10 +1422,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     if (options.path?.includes('dueDateSince=' + past30Days) && options.path?.includes('dueDateUntil=' + future30Days)) {
                       const issue = {
@@ -1377,10 +1485,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     // 同じ課題IDが開始日と期限日の両方のクエリで返される
                     const issue = {
@@ -1440,10 +1552,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     callCount++;
                     // 開始日のクエリと期限日のクエリで異なる課題を返す
@@ -1521,10 +1637,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -1576,10 +1696,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -1627,10 +1751,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue = {
                       id: 1,
@@ -1677,10 +1805,14 @@ describe('fetch-backlog-issues', () => {
             on: jest.fn((event: string, handler: any) => {
               if (event === 'data') {
                 setTimeout(() => {
-                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues')) {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('issueTypes') && !options.path?.includes('users')) {
                     handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
                   } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
                     handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
                   } else if (options.path?.includes('/issues')) {
                     const issue1 = {
                       id: 1,
@@ -1723,6 +1855,409 @@ describe('fetch-backlog-issues', () => {
         // 担当者フィルタリングが適用されないため、すべての課題が含まれる
         const allIssues = getAllIssuesFromProject(result.projects[0]);
         expect(allIssues.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    describe('MTG課題とBacklogユーザーの取得', () => {
+      beforeEach(() => {
+        setupCommonMocks();
+        mockDate(today);
+      });
+
+      it('MTG種別の課題が別クエリでmtgIssuesに取得される', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }, { id: 20, name: 'MTG' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }, { id: 2, name: '鈴木花子' }]));
+                  } else if (options.path?.includes('/issues') && options.path?.includes('issueTypeId%5B%5D=20')) {
+                    // MTG種別のクエリ
+                    const mtgIssue = {
+                      id: 100,
+                      issueKey: 'PROJECT1-100',
+                      summary: 'MTGタイトル',
+                      description: '参加者: 山田、鈴木',
+                      status: { id: 1, name: '未対応' },
+                      issueType: { id: 20, name: 'MTG' },
+                      startDate: today + 'T00:00:00Z',
+                      dueDate: today + 'T00:00:00Z',
+                      priority: { id: 2, name: '中' },
+                      projectId: 1,
+                    };
+                    handler(JSON.stringify([mtgIssue]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        expect(result.projects[0]).toHaveProperty('mtgIssues');
+        expect(result.projects[0].mtgIssues).toHaveLength(1);
+        expect(result.projects[0].mtgIssues[0].issueKey).toBe('PROJECT1-100');
+        expect(result.projects[0].mtgIssues[0].summary).toBe('MTGタイトル');
+      });
+
+      it('通常の課題取得からMTG種別が除外される', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }, { id: 20, name: 'MTG' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
+                  } else if (options.path?.includes('/issues') && options.path?.includes('issueTypeId%5B%5D=20')) {
+                    // MTG種別のクエリ
+                    handler(JSON.stringify([]));
+                  } else if (options.path?.includes('/issues')) {
+                    // 通常の課題（MTG種別を含む）
+                    const normalIssue = {
+                      id: 1,
+                      issueKey: 'PROJECT1-1',
+                      summary: '通常タスク',
+                      description: '',
+                      status: { id: 1, name: '未対応' },
+                      issueType: { id: 10, name: 'タスク' },
+                      startDate: yesterday + 'T00:00:00Z',
+                      dueDate: tomorrow + 'T00:00:00Z',
+                      priority: { id: 2, name: '中' },
+                      projectId: 1,
+                    };
+                    const mtgIssue = {
+                      id: 100,
+                      issueKey: 'PROJECT1-100',
+                      summary: 'MTGタイトル',
+                      description: '',
+                      status: { id: 1, name: '未対応' },
+                      issueType: { id: 20, name: 'MTG' },
+                      startDate: today + 'T00:00:00Z',
+                      dueDate: today + 'T00:00:00Z',
+                      priority: { id: 2, name: '中' },
+                      projectId: 1,
+                    };
+                    handler(JSON.stringify([normalIssue, mtgIssue]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        const todayIssues = getAllIssuesFromGroups(result.projects[0].todayIssues);
+        // MTG課題は通常の課題リストから除外される
+        const mtgInTodayIssues = todayIssues.filter((issue: any) => issue.issueType?.name === 'MTG');
+        expect(mtgInTodayIssues).toHaveLength(0);
+      });
+
+      it('Backlogユーザー一覧がbacklogUsersに含まれる', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([
+                      { id: 1, name: '山田太郎' },
+                      { id: 2, name: '鈴木花子' },
+                      { id: 3, name: '佐藤次郎' },
+                    ]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        expect(result.projects[0]).toHaveProperty('backlogUsers');
+        expect(result.projects[0].backlogUsers).toHaveLength(3);
+        expect(result.projects[0].backlogUsers[0]).toEqual({ id: 1, name: '山田太郎' });
+        expect(result.projects[0].backlogUsers[1]).toEqual({ id: 2, name: '鈴木花子' });
+      });
+
+      it('MTG課題にdescriptionが含まれる', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 20, name: 'MTG' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
+                  } else if (options.path?.includes('/issues') && options.path?.includes('issueTypeId%5B%5D=20')) {
+                    const mtgIssue = {
+                      id: 100,
+                      issueKey: 'PROJECT1-100',
+                      summary: 'MTGタイトル',
+                      description: '## 参加者\n- 山田太郎\n- 鈴木花子\n\n## アジェンダ\n- 進捗確認',
+                      status: { id: 1, name: '未対応' },
+                      issueType: { id: 20, name: 'MTG' },
+                      startDate: today + 'T00:00:00Z',
+                      dueDate: today + 'T00:00:00Z',
+                      priority: { id: 2, name: '中' },
+                      projectId: 1,
+                    };
+                    handler(JSON.stringify([mtgIssue]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        expect(result.projects[0].mtgIssues[0]).toHaveProperty('description');
+        expect(result.projects[0].mtgIssues[0].description).toContain('参加者');
+        expect(result.projects[0].mtgIssues[0].description).toContain('アジェンダ');
+      });
+
+      it('MTG課題は担当者フィルタリングが適用されない', async () => {
+        ssmMock.on(GetParameterCommand, {
+          Name: '/backlog-morning-meeting/active-assignee-ids',
+        }).resolves({
+          Parameter: { Value: '999' }, // 存在しない担当者ID
+        });
+
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 20, name: 'MTG' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
+                  } else if (options.path?.includes('/issues') && options.path?.includes('issueTypeId%5B%5D=20')) {
+                    const mtgIssue = {
+                      id: 100,
+                      issueKey: 'PROJECT1-100',
+                      summary: 'MTGタイトル',
+                      description: '',
+                      status: { id: 1, name: '未対応' },
+                      issueType: { id: 20, name: 'MTG' },
+                      assignee: { id: 1, name: '山田太郎' }, // activeAssigneeIdsに含まれない
+                      startDate: today + 'T00:00:00Z',
+                      dueDate: today + 'T00:00:00Z',
+                      priority: { id: 2, name: '中' },
+                      projectId: 1,
+                    };
+                    handler(JSON.stringify([mtgIssue]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        // MTG課題は担当者フィルタリングが適用されないため取得される
+        expect(result.projects[0].mtgIssues).toHaveLength(1);
+        expect(result.projects[0].mtgIssues[0].issueKey).toBe('PROJECT1-100');
+      });
+
+      it('MTG課題が0件の場合、空配列を返す', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 20, name: 'MTG' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        expect(result.projects[0]).toHaveProperty('mtgIssues');
+        expect(result.projects[0].mtgIssues).toEqual([]);
+      });
+
+      it('Backlogユーザーが0人の場合、空配列を返す', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        expect(result.projects[0]).toHaveProperty('backlogUsers');
+        expect(result.projects[0].backlogUsers).toEqual([]);
+      });
+
+      it('MTG種別が存在しないプロジェクトでもエラーにならない', async () => {
+        const mockRequest = https.request as jest.Mock;
+        mockRequest.mockImplementation((options: any, callback: any) => {
+          const mockResponse: any = {
+            statusCode: 200,
+            on: jest.fn((event: string, handler: any) => {
+              if (event === 'data') {
+                setTimeout(() => {
+                  if (options.path?.includes('/projects/PROJECT1') && !options.path?.includes('statuses') && !options.path?.includes('issues') && !options.path?.includes('users') && !options.path?.includes('issueTypes')) {
+                    handler(JSON.stringify({ id: 1, projectKey: 'PROJECT1', name: 'Project 1' }));
+                  } else if (options.path?.includes('/projects/PROJECT1/statuses')) {
+                    handler(JSON.stringify([{ id: 1, name: '未対応' }, { id: 2, name: '完了' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/issueTypes')) {
+                    // MTG種別が存在しない
+                    handler(JSON.stringify([{ id: 10, name: 'タスク' }, { id: 11, name: 'バグ' }]));
+                  } else if (options.path?.includes('/projects/PROJECT1/users')) {
+                    handler(JSON.stringify([{ id: 1, name: '山田太郎' }]));
+                  } else if (options.path?.includes('/issues')) {
+                    handler(JSON.stringify([]));
+                  }
+                }, 0);
+              } else if (event === 'end') {
+                setTimeout(() => handler(), 0);
+              }
+              return mockResponse;
+            }),
+          };
+          setTimeout(() => callback(mockResponse), 0);
+          return {
+            on: jest.fn(),
+            end: jest.fn(),
+          };
+        });
+
+        const result = (await handler({}, {} as any, jest.fn())) as any;
+        // エラーにならず、mtgIssuesは空配列
+        expect(result.projects[0]).toHaveProperty('mtgIssues');
+        expect(result.projects[0].mtgIssues).toEqual([]);
       });
     });
   });
