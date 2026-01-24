@@ -69,6 +69,24 @@ export const handler: Handler<LambdaEvent, LambdaResponse> = async (event) => {
     const { projects } = event;
     const documents: Document[] = [];
 
+    // デバッグログ: 入力データの確認
+    console.log('=== generate-document 開始 ===');
+    console.log(`プロジェクト数: ${projects.length}`);
+    for (const project of projects) {
+      console.log(`[${project.projectKey}] 入力データ:`);
+      console.log(`  - todayIssues グループ数: ${project.todayIssues.length}`);
+      console.log(`  - incompleteIssues グループ数: ${project.incompleteIssues.length}`);
+      console.log(`  - dueTodayIssues グループ数: ${project.dueTodayIssues.length}`);
+
+      // todayIssuesの詳細
+      project.todayIssues.forEach(group => {
+        console.log(`    todayIssues[${group.assigneeName}]: ${group.issues.length}件`);
+        group.issues.forEach(issue => {
+          console.log(`      - ${issue.issueKey}: ${issue.summary}`);
+        });
+      });
+    }
+
     // 現在日時を取得（JST）
     const now = new Date();
     const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
@@ -439,6 +457,15 @@ function generateMeetingNotesSection(
       assigneeMap.set(group.assigneeName, { incomplete: [], today: [] });
     }
     assigneeMap.get(group.assigneeName)!.today = group.issues;
+  }
+
+  // デバッグログ: 議事録セクション生成
+  console.log('=== 議事録セクション生成 ===');
+  console.log(`todayIssues グループ数: ${todayIssues.length}`);
+  console.log(`incompleteIssues グループ数: ${incompleteIssues.length}`);
+  console.log(`assigneeMap 担当者数: ${assigneeMap.size}`);
+  for (const [name, data] of assigneeMap) {
+    console.log(`  ${name}: incomplete=${data.incomplete.length}件, today=${data.today.length}件`);
   }
 
   let markdown = `## 📝 議事録\n\n`;

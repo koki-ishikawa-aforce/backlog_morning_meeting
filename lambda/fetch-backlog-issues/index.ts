@@ -204,7 +204,19 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                 const uniquePotentialTodayIssues = Array.from(
                     new Map(allPotentialTodayIssues.map(issue => [issue.id, issue])).values()
                 );
-                
+
+                // デバッグログ: 課題取得状況
+                console.log(`[${trimmedKey}] 本日対応予定 課題取得:`);
+                console.log(`  - issuesWithStartDate: ${issuesWithStartDate.length}件`);
+                console.log(`  - issuesWithDueDate: ${issuesWithDueDate.length}件`);
+                console.log(`  - uniquePotentialTodayIssues: ${uniquePotentialTodayIssues.length}件`);
+                console.log(`  - today: ${today}`);
+
+                // デバッグログ: フィルタリング前に課題の詳細を出力
+                uniquePotentialTodayIssues.forEach(issue => {
+                    console.log(`  検証: ${issue.issueKey} - startDate=${issue.startDate}, dueDate=${issue.dueDate}, assignee=${issue.assignee?.name || '未割り当て'}`);
+                });
+
                 // 本日対応予定の課題を抽出
                 // 開始日と期限日の両方が設定されている場合: startDate <= today && dueDate >= today
                 // 開始日のみ設定されている場合: startDate <= today（開始日が未来の場合は除外）
@@ -240,6 +252,12 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                     return false;
                 });
 
+                // デバッグログ: フィルタリング後の課題
+                console.log(`  - todayIssues（フィルタ後）: ${todayIssues.length}件`);
+                todayIssues.forEach(issue => {
+                    console.log(`    採用: ${issue.issueKey}`);
+                });
+
                 // 期限超過・未完了の課題（期限日が過去、ステータスが未完了）
                 const yesterdayStr = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
                 const incompleteIssues = await fetchIssuesFromBacklog(trimmedKey, projectInfo.id, {
@@ -262,13 +280,23 @@ export const handler: Handler<{}, LambdaResponse> = async (event): Promise<Lambd
                         )
                         : issues;
 
+                // デバッグログ: 担当者フィルタリング前後
+                const filteredTodayIssues = filterByAssignee(todayIssues);
+                const filteredIncompleteIssues = filterByAssignee(incompleteIssues);
+                const filteredDueTodayIssues = filterByAssignee(dueTodayIssues);
+                console.log(`[${trimmedKey}] 担当者フィルタリング:`);
+                console.log(`  - activeAssigneeIds: ${activeAssigneeIds.length > 0 ? JSON.stringify(activeAssigneeIds) : '(未設定)'}`);
+                console.log(`  - todayIssues: ${todayIssues.length}件 → ${filteredTodayIssues.length}件`);
+                console.log(`  - incompleteIssues: ${incompleteIssues.length}件 → ${filteredIncompleteIssues.length}件`);
+                console.log(`  - dueTodayIssues: ${dueTodayIssues.length}件 → ${filteredDueTodayIssues.length}件`);
+
                 // 各リストを個別に担当者フィルタリング・グループ化（リスト間の重複は許可）
                 projects.push({
                     projectKey: trimmedKey,
                     projectName: projectInfo.name,
-                    todayIssues: groupIssuesByAssignee(filterByAssignee(todayIssues)),
-                    incompleteIssues: groupIssuesByAssignee(filterByAssignee(incompleteIssues)),
-                    dueTodayIssues: groupIssuesByAssignee(filterByAssignee(dueTodayIssues)),
+                    todayIssues: groupIssuesByAssignee(filteredTodayIssues),
+                    incompleteIssues: groupIssuesByAssignee(filteredIncompleteIssues),
+                    dueTodayIssues: groupIssuesByAssignee(filteredDueTodayIssues),
                 });
             } catch (error) {
                 console.error(`プロジェクト ${trimmedKey} の課題取得に失敗:`, error);
