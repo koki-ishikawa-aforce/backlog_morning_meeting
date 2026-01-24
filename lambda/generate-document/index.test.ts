@@ -297,5 +297,28 @@ describe('generate-document', () => {
       const occurrences = (content.match(/PROJECT1-1/g) || []).length;
       expect(occurrences).toBeGreaterThanOrEqual(3);
     });
+
+    it('課題の説明文がドキュメントに含まれない', async () => {
+      const testIssue = createIssue({
+        description: 'この説明文は出力されないはず',
+      });
+      const mockEvent = {
+        projects: [
+          {
+            projectKey: 'PROJECT1',
+            projectName: 'Project 1',
+            todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [testIssue] }],
+            incompleteIssues: [],
+            dueTodayIssues: [],
+          },
+        ],
+        activeAssigneeIds: [1],
+      };
+
+      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+      expect(result.documents[0].content).not.toContain('の説明:');
+      expect(result.documents[0].content).not.toContain('この説明文は出力されないはず');
+    });
   });
 });

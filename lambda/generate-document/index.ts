@@ -177,15 +177,7 @@ function generateIssuesFromAssigneeGroups(groups: IssuesByAssignee[]): string {
       markdown += `| ${issueKey} | ${summary} | ${status} | ${startDate} | ${dueDate} | ${priority} | ${category} | [リンク](${url}) |\n`;
     }
 
-    // 課題の説明を追加
-    for (const issue of issues) {
-      if (issue.description && issue.description.trim()) {
-        markdown += `\n**${issue.issueKey}** の説明:\n`;
-        markdown += `${escapeMarkdown(issue.description)}\n\n`;
-      }
-    }
-
-    markdown += `---\n\n`;
+    markdown += `\n---\n\n`;
   }
 
   return markdown;
