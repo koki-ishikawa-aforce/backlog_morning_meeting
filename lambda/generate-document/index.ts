@@ -269,7 +269,10 @@ function generateMeetingNotesSection(
       markdown += `#### ⚠️ 期限超過・未完了\n`;
       for (const issue of data.incomplete) {
         markdown += `- ${issue.issueKey}: ${issue.summary}\n`;
-        markdown += `  <!-- メモ -->\n`;
+        markdown += `  - **遅延理由**: <!-- 自責/社内待ち/顧客待ち/仕様変更/割り込み対応 -->\n`;
+        markdown += `  - **ボール**: <!-- 自分/社内（誰）/顧客 -->\n`;
+        markdown += `  - **次のアクション**: <!-- -->\n`;
+        markdown += `  - **完了見込み**: <!-- -->\n`;
       }
       markdown += `\n`;
     }
@@ -280,7 +283,9 @@ function generateMeetingNotesSection(
       for (const issue of data.today) {
         const dueTodayMark = dueTodayKeys.has(issue.issueKey) ? ' 🔔（今日締め切り）' : '';
         markdown += `- ${issue.issueKey}: ${issue.summary}${dueTodayMark}\n`;
-        markdown += `  <!-- メモ -->\n`;
+        markdown += `  - **進捗**: <!-- 進行中/完了間近/着手前/ブロック中 -->\n`;
+        markdown += `  - **状況**: <!-- -->\n`;
+        markdown += `  - **ボール**: <!-- 自分/社内（誰）/顧客 -->\n`;
       }
       markdown += `\n`;
     }

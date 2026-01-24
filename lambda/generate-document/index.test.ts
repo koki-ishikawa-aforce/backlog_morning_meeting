@@ -561,4 +561,222 @@ describe('generate-document', () => {
       expect(result.documents[0].content).toContain('<!-- メモ -->');
     });
   });
+
+  describe('議事録セクションのメモ欄フォーマット', () => {
+    const createTestIssue = (overrides: any = {}) => ({
+      id: 1,
+      issueKey: 'PROJECT1-1',
+      summary: 'テスト課題',
+      description: '',
+      status: { id: 1, name: '未対応' },
+      assignee: { id: 1, name: 'Test User' },
+      dueDate: '2024-01-20',
+      startDate: '2024-01-15',
+      priority: { id: 1, name: '中' },
+      category: [],
+      url: 'https://example.com/view/PROJECT1-1',
+      project: { id: 1, projectKey: 'PROJECT1', name: 'Project 1' },
+      ...overrides,
+    });
+
+    describe('期限超過・未完了課題のメモ欄', () => {
+      it('「遅延理由」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**遅延理由**: <!-- 自責/社内待ち/顧客待ち/仕様変更/割り込み対応 -->');
+      });
+
+      it('「ボール」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**ボール**: <!-- 自分/社内（誰）/顧客 -->');
+      });
+
+      it('「次のアクション」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**次のアクション**: <!-- -->');
+      });
+
+      it('「完了見込み」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**完了見込み**: <!-- -->');
+      });
+    });
+
+    describe('本日対応予定課題のメモ欄', () => {
+      it('「進捗」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**進捗**: <!-- 進行中/完了間近/着手前/ブロック中 -->');
+      });
+
+      it('「状況」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        expect(result.documents[0].content).toContain('**状況**: <!-- -->');
+      });
+
+      it('「ボール」テンプレートが含まれる', async () => {
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [createTestIssue()] }],
+              incompleteIssues: [],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+
+        // 本日対応予定セクション内のボールテンプレートを確認
+        const content = result.documents[0].content;
+        const todaySection = content.split('#### 📅 本日対応予定')[1];
+        expect(todaySection).toContain('**ボール**: <!-- 自分/社内（誰）/顧客 -->');
+      });
+    });
+
+    describe('エッジケース', () => {
+      it('今日締め切りの本日対応予定課題には🔔マークと本日対応予定用テンプレートが適用される', async () => {
+        const today = new Date().toISOString().split('T')[0];
+        const dueTodayIssue = createTestIssue({ dueDate: today, issueKey: 'PROJECT1-99' });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [dueTodayIssue] }],
+              incompleteIssues: [],
+              dueTodayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [dueTodayIssue] }],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        // 🔔マークが付いている
+        expect(content).toContain('PROJECT1-99: テスト課題 🔔（今日締め切り）');
+        // 本日対応予定用のテンプレートが適用されている
+        expect(content).toContain('**進捗**: <!-- 進行中/完了間近/着手前/ブロック中 -->');
+      });
+
+      it('期限超過と本日対応予定の両方に課題がある場合、各セクションで正しいテンプレートが使用される', async () => {
+        const incompleteIssue = createTestIssue({ issueKey: 'PROJECT1-1', summary: '期限超過課題' });
+        const todayIssue = createTestIssue({ issueKey: 'PROJECT1-2', summary: '本日対応課題' });
+
+        const mockEvent = {
+          projects: [
+            {
+              projectKey: 'PROJECT1',
+              projectName: 'Project 1',
+              todayIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [todayIssue] }],
+              incompleteIssues: [{ assigneeName: 'Test User', assigneeId: 1, issues: [incompleteIssue] }],
+              dueTodayIssues: [],
+            },
+          ],
+          activeAssigneeIds: [1],
+        };
+
+        const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
+        const content = result.documents[0].content;
+
+        // 期限超過セクションのテンプレート
+        const incompleteSection = content.split('#### ⚠️ 期限超過・未完了')[1].split('#### 📅 本日対応予定')[0];
+        expect(incompleteSection).toContain('**遅延理由**:');
+        expect(incompleteSection).toContain('**次のアクション**:');
+        expect(incompleteSection).toContain('**完了見込み**:');
+
+        // 本日対応予定セクションのテンプレート
+        const todaySection = content.split('#### 📅 本日対応予定')[1].split('---')[0];
+        expect(todaySection).toContain('**進捗**:');
+        expect(todaySection).toContain('**状況**:');
+      });
+    });
+  });
 });
