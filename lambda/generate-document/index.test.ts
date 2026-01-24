@@ -1,18 +1,8 @@
 import { handler } from './index';
-import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { mockClient } from 'aws-sdk-client-mock';
-
-const secretsManagerMock = mockClient(SecretsManagerClient);
-
-// fetchのモック
-global.fetch = jest.fn() as jest.Mock;
 
 describe('generate-document', () => {
   beforeEach(() => {
-    secretsManagerMock.reset();
     jest.clearAllMocks();
-    delete process.env.OPENAI_API_KEY_SECRET_NAME;
-    delete process.env.OPENAI_MODEL;
   });
 
   afterEach(() => {
@@ -37,7 +27,7 @@ describe('generate-document', () => {
   });
 
   describe('正常系', () => {
-    it('Markdownドキュメントを正常に生成できる（OpenAIなし）', async () => {
+    it('Markdownドキュメントを正常に生成できる', async () => {
       const testIssue = createIssue();
       const mockEvent = {
         projects: [
@@ -90,77 +80,6 @@ describe('generate-document', () => {
       expect(result.documents).toHaveLength(2);
       expect(result.documents[0].projectKey).toBe('PROJECT1');
       expect(result.documents[1].projectKey).toBe('PROJECT2');
-    });
-
-    it('OpenAI APIを使用してドキュメントを生成できる', async () => {
-      process.env.OPENAI_API_KEY_SECRET_NAME = 'backlog-morning-meeting/openai-api-key';
-      process.env.OPENAI_MODEL = 'gpt-4o-mini';
-
-      secretsManagerMock.on(GetSecretValueCommand, {
-        SecretId: 'backlog-morning-meeting/openai-api-key',
-      }).resolves({
-        SecretString: JSON.stringify({ apiKey: 'sk-test-key' }),
-      });
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        text: async () => JSON.stringify({
-          choices: [{
-            message: {
-              content: '# 【朝会ドキュメント】2024/01/20 - Project 1\n\n生成時刻: 10:00\n\n## 📊 サマリー\n\n| 項目 | 件数 |\n|:---|:---:|\n| 本日対応予定 | 0件 |\n',
-            },
-          }],
-        }),
-      });
-
-      const mockEvent = {
-        projects: [
-          {
-            projectKey: 'PROJECT1',
-            projectName: 'Project 1',
-            todayIssues: [],
-            incompleteIssues: [],
-            dueTodayIssues: [],
-          },
-        ],
-        activeAssigneeIds: [],
-      };
-
-      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
-
-      expect(result.documents).toHaveLength(1);
-      expect(global.fetch).toHaveBeenCalled();
-    });
-  });
-
-  describe('異常系', () => {
-    it('OpenAI APIが失敗した場合はフォールバックで生成する', async () => {
-      process.env.OPENAI_API_KEY_SECRET_NAME = 'backlog-morning-meeting/openai-api-key';
-
-      secretsManagerMock.on(GetSecretValueCommand).resolves({
-        SecretString: JSON.stringify({ apiKey: 'sk-test-key' }),
-      });
-
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('API Error'));
-
-      const mockEvent = {
-        projects: [
-          {
-            projectKey: 'PROJECT1',
-            projectName: 'Project 1',
-            todayIssues: [],
-            incompleteIssues: [],
-            dueTodayIssues: [],
-          },
-        ],
-        activeAssigneeIds: [],
-      };
-
-      const result = (await handler(mockEvent, {} as any, jest.fn())) as any;
-
-      // フォールバックで生成される
-      expect(result.documents).toHaveLength(1);
-      expect(result.documents[0].content).toContain('【朝会ドキュメント】');
     });
   });
 
@@ -259,7 +178,7 @@ describe('generate-document', () => {
     it('今日締め切りの課題がドキュメントに正しく出力される', async () => {
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
+
       const dueTodayIssue = {
         id: 1,
         issueKey: 'PROJECT1-1',
@@ -329,14 +248,14 @@ describe('generate-document', () => {
       const headerIndex = content.indexOf('| 課題キー | 課題名 | ステータス |');
       const startDateIndex = content.indexOf('開始日', headerIndex);
       const dueDateIndex = content.indexOf('期限日', headerIndex);
-      
+
       expect(startDateIndex).toBeLessThan(dueDateIndex);
     });
 
     it('同じ課題が複数のリストに含まれる場合もそれぞれのセクションに表示される', async () => {
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
+
       // 同じ課題が3つすべてのリストに含まれるケース
       const sharedIssue = {
         id: 1,
@@ -373,7 +292,7 @@ describe('generate-document', () => {
       expect(content).toContain('📅 本日対応予定の課題');
       expect(content).toContain('⚠️ 期限超過・未完了の課題');
       expect(content).toContain('🔔 今日締め切りの課題');
-      
+
       // 課題キーがドキュメントに3回出現することを確認（各セクションで1回ずつ）
       const occurrences = (content.match(/PROJECT1-1/g) || []).length;
       expect(occurrences).toBeGreaterThanOrEqual(3);
