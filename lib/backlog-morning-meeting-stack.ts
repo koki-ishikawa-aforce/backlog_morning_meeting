@@ -76,6 +76,19 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
       })
     );
 
+    // Lambda関数: check-holiday（祝日判定）
+    const checkHolidayFn = new NodejsFunction(this, 'CheckHoliday', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: path.join(__dirname, '../lambda/check-holiday/index.ts'),
+      handler: 'handler',
+      timeout: cdk.Duration.seconds(30),
+      bundling: {
+        target: 'node20',
+        sourceMap: true,
+        minify: true,
+      },
+    });
+
     // Lambda関数: generate-document（TypeScriptをデプロイ時にバンドル）
     const generateDocumentFn = new NodejsFunction(this, 'GenerateDocument', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -153,6 +166,11 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     );
 
     // Step Functions: ステートマシン定義
+    const checkHolidayTask = new tasks.LambdaInvoke(this, 'CheckHolidayTask', {
+      lambdaFunction: checkHolidayFn,
+      outputPath: '$.Payload',
+    });
+
     const fetchTask = new tasks.LambdaInvoke(this, 'FetchBacklogIssuesTask', {
       lambdaFunction: fetchBacklogIssuesFn,
       outputPath: '$.Payload',
@@ -181,26 +199,42 @@ export class BacklogMorningMeetingStack extends cdk.Stack {
     notifyParallel.branch(notifyTeamsTask);
     notifyParallel.branch(sendEmailTask);
 
-    // ステートマシン定義
-    const definition = fetchTask
+    // メインワークフロー（祝日でない場合に実行）
+    const mainWorkflow = fetchTask
       .next(generateTask)
       .next(notifyParallel);
+
+    // 祝日の場合は処理をスキップ
+    const skipOnHoliday = new stepfunctions.Succeed(this, 'SkipOnHoliday', {
+      comment: '祝日のため処理をスキップします',
+    });
+
+    // 祝日判定による分岐
+    const holidayChoice = new stepfunctions.Choice(this, 'IsHolidayChoice')
+      .when(
+        stepfunctions.Condition.booleanEquals('$.isHoliday', true),
+        skipOnHoliday
+      )
+      .otherwise(mainWorkflow);
+
+    // ステートマシン定義
+    const definition = checkHolidayTask.next(holidayChoice);
 
     const stateMachine = new stepfunctions.StateMachine(this, 'BacklogMorningMeetingStateMachine', {
       definitionBody: stepfunctions.DefinitionBody.fromChainable(definition),
       timeout: cdk.Duration.minutes(15),
     });
 
-    // EventBridgeルール: 毎日9:30 JST（UTC 0:30）
+    // EventBridgeルール: 平日9:30 JST（UTC 0:30）
     const rule = new events.Rule(this, 'MorningMeetingSchedule', {
       schedule: events.Schedule.cron({
         minute: '30',
         hour: '0',
-        day: '*',
+        weekDay: 'MON-FRI',
         month: '*',
         year: '*',
       }),
-      description: '毎日9:30 JSTに朝会ドキュメントを生成',
+      description: '平日9:30 JSTに朝会ドキュメントを生成（祝日は除外）',
     });
 
     rule.addTarget(new targets.SfnStateMachine(stateMachine));
